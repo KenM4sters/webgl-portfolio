@@ -1,0 +1,62 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+
+body 
+{
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+  font-family: 'Montserrat', 'sans-serif';
+  overflow: hidden;
+}
+
+.body_container 
+{
+  position: relative;
+  height: 100vh;
+  width: 100vw;
+}
+
+#glcanvas 
+{
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.landing 
+{
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.nav_icon_container 
+{
+  position: relative;
+  height: 10vh;
+  width: 95%;
+  margin-top: 4%;
+  flex-direction: row;
+  display: flex;
+  justify-content: end;
+}
+
+.nav_icon 
+{
+  position: relative;
+  cursor: pointer;
+}
+
+.intro 
+{
+  position: relative;
+  width: 30%;
+  height: 10%;
+  margin-top: 20%;
+  margin-left: 2%;
+  color: blanchedalmond;
+}
