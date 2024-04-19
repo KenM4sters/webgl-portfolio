@@ -4,19 +4,14 @@ import { Ref, ShaderType } from "./Types.ts";
 export class Shader 
 {
     private ID !: Ref<WebGLProgram>;
-    private debugName : string = "";
 
-    constructor(vScriptId : string, fScriptId : string, name : string) 
+    constructor(vScriptId : string, fScriptId : string) 
     {
-        this.debugName = name;
         this.Compile(vScriptId, fScriptId);      
     }
     
     // Getters 
     GetId() : Ref<WebGLProgram> { return this.ID; }
-    GetName() : string { return this.debugName; }
-    // Setters
-    SetName(name : string) { this.debugName = name; }
 
     private Compile(vSource : string, fSource : string) : void 
     {   

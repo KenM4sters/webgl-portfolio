@@ -13,7 +13,7 @@ function main() : void
 
     // WebGL Experience.
     const animus = new Animus(canvas);
-    animus.Init(); animus.Run();
+    animus.Run();
 }
 
 main();

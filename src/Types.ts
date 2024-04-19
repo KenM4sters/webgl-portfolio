@@ -2,14 +2,44 @@
 
 //----------------------------------------------------------------
 // Global
-
-import { RenderCommand } from "./RenderCommand";
-
 //----------------------------------------------------------------
+
 export class Ref <T> 
 {
     constructor(public val: T) {}
 }
+
+//----------------------------------------------------------------
+// Geometry
+//----------------------------------------------------------------
+
+export interface GeometryDrawFunction 
+{
+    type  : GeometryDrawFunctionTypes,
+    shape : GeometryDrawFunctionShapes
+}
+
+export enum GeometryDrawFunctionTypes 
+{
+    DRAW_ARRAYS,
+    DRAW_ARRAYS_INDEXED,
+    DRAW_ARRAYS_INSTANCED,
+};
+
+export enum GeometryDrawFunctionShapes 
+{
+    TRIANGLES,
+    TRIANGLES_STRIP,
+    LINES,
+    POINTS
+};
+
+export interface GeometryDrawFunction 
+{
+    type  : GeometryDrawFunctionTypes,
+    shape : GeometryDrawFunctionShapes
+}
+
 
 //----------------------------------------------------------------
 // Shaders
@@ -23,7 +53,7 @@ export enum ShaderType
 
 export enum ShaderDataType 
 {
-    None = 0, Float, Float2, Float3, Float4, Mat3f, Mat4f, Int, Int2, Int3, Int4, Bool, UCHAR
+    None = 0, Float, Float2, Float3, Float4, Mat3f, Mat4f, Int, Int2, Int3, Int4, Bool
 }
 
 //----------------------------------------------------------------
@@ -39,9 +69,9 @@ export enum TextureType
 export enum ImageChannels 
 {
     RGB,
-    RGBA 
+    RGBA,
+    RGBA32F
 }
-
 
 export interface ImageConfig {
     TargetType : number;
@@ -53,6 +83,29 @@ export interface ImageConfig {
     DataType : number;
 };
 
+export enum DataSizes 
+{
+    FLOAT,
+    UCHAR
+}
+
+//----------------------------------------------------------------
+// Framebuffers
+//----------------------------------------------------------------
+
+
+export enum FramebufferBits 
+{
+    DEPTH_BIT,
+    COLOR_BIT,
+};
+
+export interface RenderConfig 
+{
+    DepthTest : boolean;
+    ClearColorBit : boolean;
+    ClearDepthBit : boolean;
+};
 
 // Some utility functions to convert types into sizes.
 

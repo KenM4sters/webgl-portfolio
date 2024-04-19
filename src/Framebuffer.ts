@@ -21,8 +21,8 @@ export default class Framebuffer
     private colorTexture : Texture2D;
 
     // Getters
-    public GetFBO() : WebGLFramebuffer { return this.FBO; }
-    public GetRBO() : WebGLRenderbuffer { return this.RBO; }
+    public GetFBO() : Ref<WebGLFramebuffer> { return this.FBO; }
+    public GetRBO() : Ref<WebGLRenderbuffer | null> { return this.RBO; }
     public GetColorTexture() : Texture2D { return this.colorTexture; }
 
     Init(genRenderBuffer : boolean) 

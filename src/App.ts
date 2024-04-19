@@ -25,7 +25,6 @@ export default abstract class App
         window.addEventListener("resize", () => this.Resize());
     }
 
-    public abstract Init() : void;
     public abstract Run() : void;
     public abstract Resize() : void;
 

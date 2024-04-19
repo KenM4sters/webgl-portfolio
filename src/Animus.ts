@@ -6,9 +6,12 @@
  * amongst other important processes, such as initializing the scene, camera and so fourth.
 */
 
+import GUI from "lil-gui";
 import App from "./App";
 import Renderer from "./Renderer/Renderer";
 import Scene from "./Scene";
+
+var lastFrame : number = performance.now();
 
 export default class Animus extends App
 {
@@ -16,17 +19,16 @@ export default class Animus extends App
     {
         super(canvas);
         this.Resize();
-    }
-
-    public override Init() : void 
-    {   
-        this.scene.Init();
+        this.scene.Init(this.gui, this.windowWidth, this.windowHeight);
         this.renderer.Init();
     }
 
     public override Run() : void
     {                   
-        this.renderer.Render(this.scene);
+        const currentFrame : number = performance.now();
+        const ts : number = (currentFrame - lastFrame) * 0.001;
+        lastFrame = currentFrame;
+        this.renderer.Render(this.scene, ts);
         window.requestAnimationFrame(() => this.Run());
     }
 
@@ -50,7 +52,7 @@ export default class Animus extends App
         this.canvas.height = Math.round(this.windowHeight);
 
         this.renderer.Resize(this.windowWidth, this.windowHeight);
-        this.scene.Resize();
+        this.scene.Resize(this.windowWidth, this.windowHeight);
     }
 
     public GetContext() : WebGL2RenderingContext {return this.context;}
@@ -59,6 +61,7 @@ export default class Animus extends App
     public GetDevicePixelRatio() : number {return this.devicePixelRatio;}
 
     private renderer : Renderer = new Renderer();
+    private gui : GUI = new GUI();
     private scene : Scene = new Scene();
 
 }

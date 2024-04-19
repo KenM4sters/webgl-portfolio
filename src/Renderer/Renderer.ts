@@ -1,5 +1,6 @@
 import { RenderCommand } from "../RenderCommand";
 import Scene from "../Scene";
+import { TextureType } from "../Types";
 import { PostProcessor } from "./PostProcessor";
 
 export default class Renderer
@@ -14,19 +15,40 @@ export default class Renderer
         
     }
 
-    Render(scene : Scene) : void 
+    Render(scene : Scene, ts : number) : void 
     {
-        RenderCommand.SetClearColor([1.0, 0.5, 0.0, 1.0]);
-        RenderCommand.ClearColorBufferBit(true);
+        // Set Framebuffer.
+        if(scene.output.target.GetFBO()) 
+        {
+            RenderCommand.BindFramebuffer(scene.output.target.GetFBO());
+            RenderCommand.BindRenderbuffer(scene.output.target.GetRBO());              
+            RenderCommand.BindTexture(scene.output.target.GetColorTexture().GetId(), TextureType.Tex2D);
+        } else {
+            RenderCommand.UnbindFramebuffer();
+            RenderCommand.UnbindRenderbuffer();
+            RenderCommand.UnBindTexture(TextureType.Tex2D);
+        }
 
-        scene.Render();
+        // Set Render configurations.
+        RenderCommand.EnableDepthTest(scene.output.config.DepthTest);
+        RenderCommand.ClearColorBufferBit(scene.output.config.ClearColorBit);
+        RenderCommand.ClearDepthBufferBit(scene.output.config.ClearDepthBit);
+        RenderCommand.SetClearColor([0.0, 0.01, 0.04, 1.0]);
+
+        scene.Render(ts);
+        
+        // Cleanup.
+        if(scene.output.target.GetFBO()) RenderCommand.UnbindFramebuffer();
+        if(scene.output.target.GetRBO()) RenderCommand.UnbindRenderbuffer();
+        if(scene.output.target.GetColorTexture()) RenderCommand.UnBindTexture(TextureType.Tex2D);
+        
         this.postProcessor.Render();
-
     }
 
     Resize(w : number, h : number) : void 
     {
         RenderCommand.SetViewportDimensions(w, h);
+        this.postProcessor.Resize(w, h);
     }
 
     private postProcessor : PostProcessor;

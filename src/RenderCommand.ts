@@ -1,6 +1,7 @@
 import * as glm from "gl-matrix";
 import { VertexBuffer, IndexBuffer } from "./Buffer.ts";
-import { ImageChannels, ImageConfig, Ref, ShaderDataType, ShaderType, TextureType } from "./Types.ts";
+import { DataSizes, GeometryDrawFunctionShapes, GeometryDrawFunctionTypes, ImageChannels, ImageConfig, Ref, ShaderDataType, ShaderType, TextureType } from "./Types.ts";
+import { Mesh } from "./Mesh.ts";
 
 
 export enum BufferType 
@@ -170,17 +171,17 @@ export class RenderCommand
     }
     public static AttachShader(Id : Ref<WebGLProgram>, shader : WebGLShader) : void 
     { 
-        RenderCommand.gl.attachShader(Id, shader);
+        RenderCommand.gl.attachShader(Id.val, shader);
     }
     public static LinkShader(Id : Ref<WebGLProgram>) : void 
     { 
-        RenderCommand.gl.linkProgram(Id);
+        RenderCommand.gl.linkProgram(Id.val);
     }
     public static CheckShaderProgramErrors(Id : Ref<WebGLProgram>) : void 
     { 
-        if (!RenderCommand.gl.getProgramParameter(Id, RenderCommand.gl.LINK_STATUS)) {
+        if (!RenderCommand.gl.getProgramParameter(Id.val, RenderCommand.gl.LINK_STATUS)) {
             console.warn("Could not initialise shaders");
-            console.log(RenderCommand.gl.getProgramInfoLog(Id));
+            console.log(RenderCommand.gl.getProgramInfoLog(Id.val));
         }
     }
 
@@ -258,11 +259,11 @@ export class RenderCommand
         RenderCommand.gl.texParameteri(RenderCommand.gl.TEXTURE_2D, RenderCommand.gl.TEXTURE_WRAP_S, RenderCommand.gl.CLAMP_TO_EDGE);
         RenderCommand.gl.texParameteri(RenderCommand.gl.TEXTURE_2D, RenderCommand.gl.TEXTURE_WRAP_T, RenderCommand.gl.CLAMP_TO_EDGE);
         // Set data.
-        RenderCommand.gl.texImage2D(config.TargetType, config.MipMapLevel, config.NChannels, config.Width, config.Height, 0, config.Format, config.DataType, data.val);          
+        RenderCommand.gl.texImage2D(RenderCommand.ConvertTextureTypeToNative(config.TargetType), config.MipMapLevel, RenderCommand.ConvertImageChannelsToNative(config.NChannels), config.Width, config.Height, 0, RenderCommand.ConvertImageChannelsToNative(config.Format), RenderCommand.ConvertDataSizes(config.DataType), data.val);          
     }  
     public static SetTexture2DImage(config : ImageConfig, data : HTMLImageElement) : void 
     {
-        RenderCommand.gl.texImage2D(config.TargetType, config.MipMapLevel, config.NChannels, config.Format, config.DataType, data);
+        RenderCommand.gl.texImage2D(RenderCommand.ConvertTextureTypeToNative(config.TargetType), config.MipMapLevel, RenderCommand.ConvertImageChannelsToNative(config.NChannels), RenderCommand.ConvertImageChannelsToNative(config.Format), RenderCommand.ConvertDataSizes(config.DataType), data);
     }
     public static GenerateMipMap(type : TextureType) : void 
     {
@@ -321,6 +322,7 @@ export class RenderCommand
     }
     public static BindRenderbuffer(Id : Ref<WebGLRenderbuffer | null>) : void 
     {
+        if(!Id) throw new Error("RenderCommand | RenderBuffer Id is null!");
         RenderCommand.gl.bindRenderbuffer(RenderCommand.gl.RENDERBUFFER, Id.val);
     }
     public static SetRenderbufferDepthAttachment(RBO : Ref<WebGLRenderbuffer | null>, FBO: Ref<WebGLFramebuffer | null>, config : ImageConfig) : void 
@@ -387,28 +389,40 @@ export class RenderCommand
     }
 
     // Draw Commands
-    // public static Draw(shape : GeometryDrawFunctionShapes, nVertices : number) : void 
-    // {
-    //     switch(shape) // This switch statement is a bit redundant at the moment but I think we'll have to change some of the parameters for other shapes. 
-    //     {
-    //         case GeometryDrawFunctionShapes.TRIANGLES: RenderCommand.gl.drawArrays(ConvertShapeToNativeShape(shape), 0, nVertices); break; 
-    //         case GeometryDrawFunctionShapes.TRIANGLES_STRIP: RenderCommand.gl.drawArrays(ConvertShapeToNativeShape(shape), 0, nVertices); break;
-    //     }
-    // }
-    // public static DrawIndexed(shape : GeometryDrawFunctionShapes, count : number, offset : number) : void
-    // {
-    //     RenderCommand.gl.drawElements(ConvertShapeToNativeShape(shape), count, RenderCommand.gl.UNSIGNED_SHORT, offset);
-    // }
-    // public static DrawInstanced(shape : GeometryDrawFunctionShapes, nVertices : number, nInstances : number) : void
-    // {
-    //     switch(shape) 
-    //     {
-    //         case GeometryDrawFunctionShapes.TRIANGLES: RenderCommand.gl.drawArraysInstanced(ConvertShapeToNativeShape(shape), 0, 1, nInstances); break; 
-    //         case GeometryDrawFunctionShapes.TRIANGLES_STRIP: RenderCommand.gl.drawArraysInstanced(ConvertShapeToNativeShape(shape), 0, 1, nInstances); break; 
-    //         case GeometryDrawFunctionShapes.POINTS: RenderCommand.gl.drawArraysInstanced(ConvertShapeToNativeShape(shape), 0, 1, nInstances); break; 
-    //         case GeometryDrawFunctionShapes.LINES: RenderCommand.gl.drawArraysInstanced(ConvertShapeToNativeShape(shape), 0, 2, nInstances); break; 
-    //     }
-    // }
+    public static Draw(shape : GeometryDrawFunctionShapes, nVertices : number) : void 
+    {
+        switch(shape) // This switch statement is a bit redundant at the moment but I think we'll have to change some of the parameters for other shapes. 
+        {
+            case GeometryDrawFunctionShapes.TRIANGLES: RenderCommand.gl.drawArrays(RenderCommand.ConvertShapeToNativeShape(shape), 0, nVertices); break; 
+            case GeometryDrawFunctionShapes.TRIANGLES_STRIP: RenderCommand.gl.drawArrays(RenderCommand.ConvertShapeToNativeShape(shape), 0, nVertices); break;
+        }
+    }
+    public static DrawIndexed(shape : GeometryDrawFunctionShapes, count : number, offset : number) : void
+    {
+        RenderCommand.gl.drawElements(RenderCommand.ConvertShapeToNativeShape(shape), count, RenderCommand.gl.UNSIGNED_SHORT, offset);
+    }
+    public static DrawMesh(mesh : Mesh) : void
+    {
+        var VAO = mesh.GetGeometry().vertexArray;
+        var EBO = VAO.GetIndexBuffer();
+        var shader = mesh.GetMaterial().GetShader();
+
+        // Bind the vertex array object and shader program.
+        RenderCommand.BindVertexArray(VAO.GetId());
+        RenderCommand.UseShader(shader.GetId());
+
+        // Make the correct draw call.
+        switch(mesh.GetGeometry().drawFunction.type) 
+        {
+            case GeometryDrawFunctionTypes.DRAW_ARRAYS: RenderCommand.Draw(mesh.GetGeometry().drawFunction.shape, VAO.GetVertexBuffer().GetVerticesCount()); break;
+            case GeometryDrawFunctionTypes.DRAW_ARRAYS_INDEXED: if(EBO) RenderCommand.DrawIndexed(mesh.GetGeometry().drawFunction.shape, EBO.GetUniqueSize() / EBO.GetUniqueIndices().BYTES_PER_ELEMENT , EBO.GetUniqueOffset()); break; 
+        };
+
+        // Cleanup.
+        RenderCommand.UnbindVertexArray();
+        RenderCommand.UnbindBuffer(BufferType.Index);
+        RenderCommand.ReleaseShader();
+    }
 
     //----------------------------------------------------------------
     // Convertion Functions.
@@ -465,6 +479,29 @@ export class RenderCommand
 
         return 0;
     }
+    private static ConvertDataSizes(size : DataSizes) : number 
+    {
+        switch(size) 
+        {
+            case DataSizes.FLOAT: return RenderCommand.gl.FLOAT;
+            case DataSizes.UCHAR: return RenderCommand.gl.UNSIGNED_BYTE;
+        }
+
+        return 0;
+    }
+
+    private static ConvertShapeToNativeShape(shape : GeometryDrawFunctionShapes) : number 
+{
+    switch(shape) 
+    { 
+        case GeometryDrawFunctionShapes.TRIANGLES: return RenderCommand.gl.TRIANGLES;
+        case GeometryDrawFunctionShapes.TRIANGLES_STRIP: return RenderCommand.gl.TRIANGLE_STRIP;
+        case GeometryDrawFunctionShapes.POINTS: return RenderCommand.gl.POINTS;
+        case GeometryDrawFunctionShapes.LINES: return RenderCommand.gl.LINES;
+    }
+
+    return 0;
+}
 
 
 };
