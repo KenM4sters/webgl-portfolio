@@ -1,4 +1,4 @@
-import App from "./App";
+import Animus from "./Animus";
 import Frontend from "./Frontend";
 
 function main() : void
@@ -12,9 +12,8 @@ function main() : void
     // frontend.Init();
 
     // WebGL Experience.
-    const app = new App(canvas);
-    app.Init();
-    // <--- TBC
+    const animus = new Animus(canvas);
+    animus.Init(); animus.Run();
 }
 
 main();
