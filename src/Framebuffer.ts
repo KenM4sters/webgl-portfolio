@@ -11,8 +11,10 @@ import { ImageConfig, Ref } from "./Types";
  */
 export default class Framebuffer 
 {
-    constructor(config : ImageConfig, genRenderBuffer : boolean = false) {
-        this.colorTexture = new Texture2D(config);
+    constructor(config : ImageConfig | Texture2D, genRenderBuffer : boolean = false) {
+        if(config instanceof Texture2D) this.colorTexture = config;
+        else this.colorTexture = new Texture2D(config);
+        
         this.Init(genRenderBuffer);
     }
 

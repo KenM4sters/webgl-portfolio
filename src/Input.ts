@@ -23,7 +23,7 @@ export default class Input
 {
     constructor() {}
 
-    public static ListenToEvents() : void 
+    public ListenToEvents() : void 
     {
         window.addEventListener("keydown", (event : KeyboardEvent) => 
         {

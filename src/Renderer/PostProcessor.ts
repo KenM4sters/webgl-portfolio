@@ -1,34 +1,36 @@
+import { SquareGeometry } from "../Geometry";
+import { Shader } from "../Shader";
+import { RenderTarget } from "../Types";
+import BloomPass from "./BloomPass";
+import {RenderPass, ScreenPass} from "./ScreenPass";
 
-export class RenderPass
-{
-    constructor() {}
-
-    Init() {}
-    Render() {}
-    Resize(w : number, h : number) {}
-};
-
-
+  
 export class PostProcessor
 {
-    constructor() 
-    {
-
-    }
+    constructor() {}
     
     Init() : void 
     {
+        const quad = new SquareGeometry();
+        const bloomPass = new BloomPass(quad);
+        const screenPass = new ScreenPass(quad);
+        this.passess.push(bloomPass);
+        this.passess.push(screenPass);
+
         for(const pass of this.passess) 
         {
             pass.Init();
-        }
+        } 
     }
 
-    Render() : void 
+    Render(sceneOutput : RenderTarget) : void 
     {
+        var result : RenderTarget = sceneOutput;
+        PostProcessor.sceneOutput = sceneOutput;
+        
         for(const pass of this.passess) 
         {
-            pass.Render();
+            result = pass.Render(result);
         }
     }
 
@@ -43,4 +45,5 @@ export class PostProcessor
     SubmitPass(pass : RenderPass) : void { this.passess.push(pass); }
 
     private passess : Array<RenderPass> = new Array<RenderPass>();
+    static sceneOutput : RenderTarget;
 };

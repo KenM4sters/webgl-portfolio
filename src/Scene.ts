@@ -5,7 +5,7 @@ import { CubeGeometry } from "./Geometry";
 import { PhysicalMaterial } from "./Material";
 import { Shader } from "./Shader";
 import { Light, PointLight } from "./Light";
-import { DataSizes, ImageChannels, ImageConfig, RenderConfig, TextureType } from "./Types";
+import { DataSizes, ImageChannels, ImageConfig, RenderTarget, TextureType } from "./Types";
 import { RenderCommand } from "./RenderCommand";
 import Input from "./Input";
 import PerspectiveCamera, { CameraDirections } from "./Camera/PerspectiveCamera";
@@ -48,8 +48,8 @@ export default class Scene
         // Light 1
         var light1 = new PointLight(glm.vec3.fromValues(1.0, 1.0, 1.0), 1.0);
         light1.intensity = 1000.0;
-        light1.color = glm.vec3.fromValues(0.0, 0.0, 0.2);
-        light1.transforms.Translation = glm.vec3.fromValues(1.0, 100.0, 2.0);
+        light1.color = glm.vec3.fromValues(0.0, 0.4, 0.2);
+        light1.transforms.Translation = glm.vec3.fromValues(1.0, 11.0, 6.0);
         light1.transforms.ModelMatrix = glm.mat4.translate(glm.mat4.create(), light1.transforms.ModelMatrix, light1.transforms.Translation);
         this.Push(light1);
 
@@ -219,15 +219,18 @@ export default class Scene
                 RenderCommand.UnBindTexture(TextureType.Tex2D, 3);
             } 
         })
+        
+        this.ProcessUserInput(ts);
+        
     }
 
     public Resize(w : number, h : number): void {
         if(!this.output) return;
         // Delete current framebuffers, renderbuffers and textures, since they all require
         // information about our window dimensions which have now been changed. 
-        if(this.output.target.GetFBO()) RenderCommand.DeleteFramebuffer(this.output.target.GetFBO());
-        if(this.output.target.GetRBO()) RenderCommand.DeleteRenderBuffer(this.output.target.GetRBO());
-        if(this.output.target.GetColorTexture()) RenderCommand.DeleteTexture2D(this.output.target.GetColorTexture().GetId());
+        if(this.output.target?.GetFBO()) RenderCommand.DeleteFramebuffer(this.output.target.GetFBO());
+        if(this.output.target?.GetRBO()) RenderCommand.DeleteRenderBuffer(this.output.target.GetRBO());
+        if(this.output.target?.GetColorTexture()) RenderCommand.DeleteTexture2D(this.output.target.GetColorTexture().GetId());
 
         // Instantiate a new ImageConfig object with the updated dimension parameters.
         var imageConfig : ImageConfig = {
@@ -244,14 +247,14 @@ export default class Scene
         this.output.target = new Framebuffer(imageConfig);
     }
 
-    public ProcessUserInput(dt : number): void 
+    public ProcessUserInput(ts : number): void 
     {
-        Input.IsKeyPressed("w") ? this.camera.ProcessUserInput(CameraDirections.FORWARD, dt) : null;
-        Input.IsKeyPressed("a") ? this.camera.ProcessUserInput(CameraDirections.LEFT, dt) : null;
-        Input.IsKeyPressed("s") ? this.camera.ProcessUserInput(CameraDirections.BACKWARD, dt) : null;
-        Input.IsKeyPressed("d") ? this.camera.ProcessUserInput(CameraDirections.RIGHT, dt) : null;
-        Input.IsKeyPressed("q") ? this.camera.ProcessUserInput(CameraDirections.UP, dt) : null;
-        Input.IsKeyPressed("e") ? this.camera.ProcessUserInput(CameraDirections.DOWN, dt) : null;
+        Input.IsKeyPressed("w") ? this.camera.ProcessUserInput(CameraDirections.FORWARD, ts) : null;
+        Input.IsKeyPressed("a") ? this.camera.ProcessUserInput(CameraDirections.LEFT, ts) : null;
+        Input.IsKeyPressed("s") ? this.camera.ProcessUserInput(CameraDirections.BACKWARD, ts) : null;
+        Input.IsKeyPressed("d") ? this.camera.ProcessUserInput(CameraDirections.RIGHT, ts) : null;
+        Input.IsKeyPressed("q") ? this.camera.ProcessUserInput(CameraDirections.UP, ts) : null;
+        Input.IsKeyPressed("e") ? this.camera.ProcessUserInput(CameraDirections.DOWN, ts) : null;
     }   
 
     public Push(obj : Mesh | Light) : void 
@@ -271,5 +274,5 @@ export default class Scene
     public meshes : Array<Mesh> = new Array<Mesh>();
     public lights : Array<Light> = new Array<Light>();
     public camera !: PerspectiveCamera; 
-    public output !: {target : Framebuffer, config : RenderConfig};
+    public output !: RenderTarget;
 };

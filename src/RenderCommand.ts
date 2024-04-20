@@ -1,6 +1,6 @@
 import * as glm from "gl-matrix";
 import { VertexBuffer, IndexBuffer } from "./Buffer.ts";
-import { DataSizes, GeometryDrawFunctionShapes, GeometryDrawFunctionTypes, ImageChannels, ImageConfig, Ref, ShaderDataType, ShaderType, TextureType } from "./Types.ts";
+import { BlendFunctionEquationTypes, BlendFunctionTypes, ColorAttachments, DataSizes, GeometryDrawFunctionShapes, GeometryDrawFunctionTypes, ImageChannels, ImageConfig, Ref, ShaderDataType, ShaderType, TextureType } from "./Types.ts";
 import { Mesh } from "./Mesh.ts";
 
 
@@ -303,9 +303,14 @@ export class RenderCommand
             console.error('Framebuffer is not complete: ' + status.toString(16));
         }    
     }
-    public static DrawFramebuffer(attachments : number[]) : void 
+    public static DrawFramebuffer(attachments : ColorAttachments[]) : void 
     {
-        RenderCommand.gl.drawBuffers(attachments);
+        var temp : Array<number> = new Array<number>();
+        for(const a of attachments) 
+        {
+            temp.push(this.ConvertColorAttachmentsToNative(a));
+        }
+        RenderCommand.gl.drawBuffers(temp);
     }
 
     public static DeleteFramebuffer(FBO : Ref<WebGLFramebuffer | null>) 
@@ -369,11 +374,11 @@ export class RenderCommand
     }
     public static SetBlendFunc(a : number, b : number) : void
     {
-        RenderCommand.gl.blendFunc(a, b);
+        RenderCommand.gl.blendFunc(this.ConvertBlendFunctionTypes(a), this.ConvertBlendFunctionTypes(b));
     }
     public static SetBlendEquation(e : number) : void
     {
-        RenderCommand.gl.blendEquation(e);
+        RenderCommand.gl.blendEquation(this.ConvertBlendFunctionEquationTypes(e));
     }
     
     public static SetClearColor(color : glm.vec4) : void
@@ -494,17 +499,45 @@ export class RenderCommand
     }
 
     private static ConvertShapeToNativeShape(shape : GeometryDrawFunctionShapes) : number 
-{
-    switch(shape) 
-    { 
-        case GeometryDrawFunctionShapes.TRIANGLES: return RenderCommand.gl.TRIANGLES;
-        case GeometryDrawFunctionShapes.TRIANGLES_STRIP: return RenderCommand.gl.TRIANGLE_STRIP;
-        case GeometryDrawFunctionShapes.POINTS: return RenderCommand.gl.POINTS;
-        case GeometryDrawFunctionShapes.LINES: return RenderCommand.gl.LINES;
-    }
+    {
+        switch(shape) 
+        { 
+            case GeometryDrawFunctionShapes.TRIANGLES: return RenderCommand.gl.TRIANGLES;
+            case GeometryDrawFunctionShapes.TRIANGLES_STRIP: return RenderCommand.gl.TRIANGLE_STRIP;
+            case GeometryDrawFunctionShapes.POINTS: return RenderCommand.gl.POINTS;
+            case GeometryDrawFunctionShapes.LINES: return RenderCommand.gl.LINES;
+        }
 
-    return 0;
-}
+        return 0;
+    }
+    private static ConvertColorAttachmentsToNative(ca : ColorAttachments) : number 
+    {
+        switch(ca) 
+        { 
+            case ColorAttachments.COLOR_0: return RenderCommand.gl.COLOR_ATTACHMENT0;
+            case ColorAttachments.COLOR_1: return RenderCommand.gl.COLOR_ATTACHMENT1;
+        }
+
+        return 0;
+    }
+    private static ConvertBlendFunctionTypes(type : BlendFunctionTypes) : number 
+    {
+        switch(type) 
+        { 
+            case BlendFunctionTypes.ONE: return RenderCommand.gl.ONE;
+        }
+
+        return 0;
+    }
+    private static ConvertBlendFunctionEquationTypes(type : BlendFunctionEquationTypes) : number 
+    {
+        switch(type) 
+        { 
+            case BlendFunctionEquationTypes.FUNC_ADD: return RenderCommand.gl.FUNC_ADD;
+        }
+
+        return 0;
+    }
 
 
 };

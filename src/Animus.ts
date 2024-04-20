@@ -10,6 +10,7 @@ import GUI from "lil-gui";
 import App from "./App";
 import Renderer from "./Renderer/Renderer";
 import Scene from "./Scene";
+import Input from "./Input";
 
 var lastFrame : number = performance.now();
 
@@ -18,7 +19,14 @@ export default class Animus extends App
     constructor(canvas : HTMLCanvasElement) 
     {
         super(canvas);
+        
+        this.scene = new Scene();
+        this.gui = new GUI();
+        this.renderer = new Renderer();
+        this.input = new Input();
+        
         this.Resize();
+        this.input.ListenToEvents();
         this.scene.Init(this.gui, this.windowWidth, this.windowHeight);
         this.renderer.Init();
     }
@@ -51,8 +59,10 @@ export default class Animus extends App
         this.canvas.width = Math.round(this.windowWidth);
         this.canvas.height = Math.round(this.windowHeight);
 
-        this.renderer.Resize(this.windowWidth, this.windowHeight);
-        this.scene.Resize(this.windowWidth, this.windowHeight);
+        
+            this.renderer.Resize(this.windowWidth, this.windowHeight);
+            this.scene.Resize(this.windowWidth, this.windowHeight);
+        
     }
 
     public GetContext() : WebGL2RenderingContext {return this.context;}
@@ -60,8 +70,9 @@ export default class Animus extends App
     public GetWindowHeight() : number {return this.windowHeight;}
     public GetDevicePixelRatio() : number {return this.devicePixelRatio;}
 
-    private renderer : Renderer = new Renderer();
-    private gui : GUI = new GUI();
-    private scene : Scene = new Scene();
+    private scene : Scene;
+    private gui : GUI;
+    private renderer : Renderer;
+    private input : Input;
 
 }

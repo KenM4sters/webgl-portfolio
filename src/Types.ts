@@ -4,6 +4,8 @@
 // Global
 //----------------------------------------------------------------
 
+import Framebuffer from "./Framebuffer";
+
 export class Ref <T> 
 {
     constructor(public val: T) {}
@@ -100,11 +102,33 @@ export enum FramebufferBits
     COLOR_BIT,
 };
 
+export enum ColorAttachments 
+{
+    COLOR_0,
+    COLOR_1
+};
+
+export enum BlendFunctionTypes 
+{
+    ONE
+};
+
+export enum BlendFunctionEquationTypes 
+{
+    FUNC_ADD,
+};
+
 export interface RenderConfig 
 {
     DepthTest : boolean;
     ClearColorBit : boolean;
     ClearDepthBit : boolean;
+};
+
+export interface RenderTarget 
+{
+    target : Framebuffer | null,
+    config : RenderConfig;
 };
 
 // Some utility functions to convert types into sizes.
