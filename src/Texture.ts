@@ -10,6 +10,7 @@ abstract class Texture
     {
         this.config = config;
         this.Id = {val: RenderCommand.CreateTexture()};
+        this.data = {val: new Float32Array(config.Width*config.Height*4)}
         this.Init();
     }
 
@@ -27,7 +28,7 @@ abstract class Texture
     
     protected Id : Ref<WebGLTexture>;
     protected config : ImageConfig;
-    protected data : Ref<Float32Array | HTMLImageElement> = {val: new Float32Array([1.0, 0.5, 0.0, 1.0])}
+    protected data : Ref<Float32Array | HTMLImageElement>;
 };
 
 

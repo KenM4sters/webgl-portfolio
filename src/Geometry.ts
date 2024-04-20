@@ -11,7 +11,7 @@ export abstract class Geometry
     public vertexArray !: VertexArray;
     public drawFunction : GeometryDrawFunction = {
         type: GeometryDrawFunctionTypes.DRAW_ARRAYS,
-        shape : GeometryDrawFunctionShapes.LINES
+        shape : GeometryDrawFunctionShapes.TRIANGLES
     };
 };
 

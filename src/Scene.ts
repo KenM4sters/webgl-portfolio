@@ -23,6 +23,9 @@ export default class Scene
 
     public Init(Gui : GUI, w : number, h : number): void 
     {
+        // Camera
+        this.camera = new PerspectiveCamera([0.0, 2.0, 10.0], w, h);
+
         const PBR_MVP_Shader = new Shader(mvpVertSrc, pbrFragSrc);
         // Mesh 1
         var cubeGeo = new CubeGeometry();
@@ -59,15 +62,13 @@ export default class Scene
             NChannels: ImageChannels.RGBA32F,
             Width: w,
             Height: h,
-            Format:ImageChannels.RGBA,
+            Format: ImageChannels.RGBA,
             DataType: DataSizes.FLOAT
         }
-        console.log(w, h);
-        
 
         this.output = 
         {
-            target: new Framebuffer(imageConfig),
+            target: new Framebuffer(imageConfig, true),
             config: {
                 ClearDepthBit: true,
                 ClearColorBit: true,

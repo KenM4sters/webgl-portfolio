@@ -259,7 +259,9 @@ export class RenderCommand
         RenderCommand.gl.texParameteri(RenderCommand.gl.TEXTURE_2D, RenderCommand.gl.TEXTURE_WRAP_S, RenderCommand.gl.CLAMP_TO_EDGE);
         RenderCommand.gl.texParameteri(RenderCommand.gl.TEXTURE_2D, RenderCommand.gl.TEXTURE_WRAP_T, RenderCommand.gl.CLAMP_TO_EDGE);
         // Set data.
-        RenderCommand.gl.texImage2D(RenderCommand.ConvertTextureTypeToNative(config.TargetType), config.MipMapLevel, RenderCommand.ConvertImageChannelsToNative(config.NChannels), config.Width, config.Height, 0, RenderCommand.ConvertImageChannelsToNative(config.Format), RenderCommand.ConvertDataSizes(config.DataType), data.val);          
+        // RenderCommand.gl.texImage2D(RenderCommand.ConvertTextureTypeToNative(config.TargetType), config.MipMapLevel, RenderCommand.ConvertImageChannelsToNative(config.NChannels), config.Width, config.Height, 0, RenderCommand.ConvertImageChannelsToNative(config.Format), RenderCommand.ConvertDataSizes(config.DataType), data.val);
+        RenderCommand.gl.texImage2D(RenderCommand.gl.TEXTURE_2D, config.MipMapLevel, RenderCommand.gl.RGBA32F, config.Width, config.Height, 0, RenderCommand.gl.RGBA, RenderCommand.gl.FLOAT, data.val);
+
     }  
     public static SetTexture2DImage(config : ImageConfig, data : HTMLImageElement) : void 
     {
@@ -322,7 +324,7 @@ export class RenderCommand
     }
     public static BindRenderbuffer(Id : Ref<WebGLRenderbuffer | null>) : void 
     {
-        if(!Id) throw new Error("RenderCommand | RenderBuffer Id is null!");
+        if(!Id) return;
         RenderCommand.gl.bindRenderbuffer(RenderCommand.gl.RENDERBUFFER, Id.val);
     }
     public static SetRenderbufferDepthAttachment(RBO : Ref<WebGLRenderbuffer | null>, FBO: Ref<WebGLFramebuffer | null>, config : ImageConfig) : void 
@@ -475,6 +477,7 @@ export class RenderCommand
         {
             case ImageChannels.RGB: return RenderCommand.gl.RGB;
             case ImageChannels.RGBA: return RenderCommand.gl.RGBA;
+            case ImageChannels.RGBA32F: return RenderCommand.gl.RGBA32F;
         }
 
         return 0;
