@@ -1,3 +1,4 @@
+import GUI from "lil-gui";
 import { RenderCommand } from "../RenderCommand";
 import Scene from "../Scene";
 import { TextureType } from "../Types";
@@ -11,9 +12,9 @@ export default class Renderer
 
     }
 
-    Init() : void 
+    Init(gui : GUI) : void 
     {
-        this.postProcessor.Init();
+        this.postProcessor.Init(gui);
     }
 
     Render(scene : Scene, ts : number) : void 

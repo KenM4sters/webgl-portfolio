@@ -13,6 +13,7 @@ import upSamplingFrag from "../Shaders/UpSampling.frag?raw";
 import downSamplingFrag from "../Shaders/DownSampling.frag?raw";
 import rawVert from "../Shaders/Raw.vert?raw"; 
 import { IndexBuffer } from "../Buffer";
+import GUI from "lil-gui";
 
 export default class BloomPass extends RenderPass 
 {
@@ -21,7 +22,7 @@ export default class BloomPass extends RenderPass
         super(geo);
     }
 
-    Init(): void {
+    Init(gui : GUI): void {
 
         var bloomImageConfig : ImageConfig = 
         {
@@ -70,7 +71,7 @@ export default class BloomPass extends RenderPass
         RenderCommand.BindFramebuffer(this.blurFBO.GetFBO());
 
         var attachments : number[] = [ ColorAttachments.COLOR_0 ];
-
+  
         RenderCommand.DrawFramebuffer(attachments);
         RenderCommand.UnbindFramebuffer();
         
@@ -122,6 +123,8 @@ export default class BloomPass extends RenderPass
     Resize(w: number, h: number): void {
         this.windowWidth = w;
         this.windowHeight = h;
+
+        if(!this.output) return;
         
         if(this.output?.target?.GetFBO()) RenderCommand.DeleteFramebuffer(this.output.target?.GetFBO());
         if(this.output?.target?.GetRBO()) RenderCommand.DeleteRenderBuffer(this.output.target?.GetRBO());
@@ -132,7 +135,7 @@ export default class BloomPass extends RenderPass
         {
             TargetType: TextureType.Tex2D,
             MipMapLevel: 0,
-            NChannels:  ImageChannels.RGBA32F,
+            NChannels: ImageChannels.RGBA32F,
             Width: this.windowWidth,
             Height: this.windowHeight,
             Format: ImageChannels.RGBA,
@@ -147,11 +150,11 @@ export default class BloomPass extends RenderPass
                 ClearColorBit: true,
                 ClearDepthBit: false
             }
-        };
-
+        };  
+        
         var mipSize : glm.vec2 = glm.vec2.fromValues(this.windowWidth, this.windowHeight);
         var iMipSize : glm.vec2 = glm.vec2.fromValues(Math.floor(this.windowWidth), Math.floor(this.windowHeight));
-
+        
         for(let i = 0; i < this.bloomParams.nMipMaps; i++) 
         {   
             mipSize = glm.vec2.scale(glm.vec2.create(), mipSize, 0.5);
@@ -169,20 +172,13 @@ export default class BloomPass extends RenderPass
             }
             this.mipChain.push(new Texture2D(mipConfig));
         }
-        this.output = {
-            target: new Framebuffer(this.mipChain[0], false),
-            config: 
-            {
-                DepthTest: false,
-                ClearColorBit: true,
-                ClearDepthBit: false
-            }
-        };
+ 
+        this.blurFBO = new Framebuffer(this.mipChain[0], false);
 
-        if(this.blurFBO?.GetFBO()) RenderCommand.BindFramebuffer(this.blurFBO.GetFBO());
+        RenderCommand.BindFramebuffer(this.blurFBO.GetFBO());
 
         var attachments : number[] = [ ColorAttachments.COLOR_0 ];
-
+  
         RenderCommand.DrawFramebuffer(attachments);
         RenderCommand.UnbindFramebuffer();
     }
@@ -190,6 +186,8 @@ export default class BloomPass extends RenderPass
 
     RenderDownSamples() : void 
     {
+        RenderCommand.BindFramebuffer(this.blurFBO.GetFBO());
+        
         RenderCommand.UseShader(this.downsampleShader?.GetId());
         RenderCommand.BindTexture(PostProcessor.sceneOutput.target?.GetColorTexture().GetId() as Ref<WebGLTexture>, TextureType.Tex2D);
         const EBO = this.quad.vertexArray.GetIndexBuffer();

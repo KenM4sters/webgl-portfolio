@@ -28,7 +28,7 @@ export default class Animus extends App
         this.Resize();
         this.input.ListenToEvents();
         this.scene.Init(this.gui, this.windowWidth, this.windowHeight);
-        this.renderer.Init();
+        this.renderer.Init(this.gui);
     }
 
     public override Run() : void

@@ -226,6 +226,7 @@ export default class Scene
 
     public Resize(w : number, h : number): void {
         if(!this.output) return;
+        
         // Delete current framebuffers, renderbuffers and textures, since they all require
         // information about our window dimensions which have now been changed. 
         if(this.output.target?.GetFBO()) RenderCommand.DeleteFramebuffer(this.output.target.GetFBO());
@@ -244,7 +245,7 @@ export default class Scene
         }
 
         // Reset the target.
-        this.output.target = new Framebuffer(imageConfig);
+        this.output.target = new Framebuffer(imageConfig, true);
     }
 
     public ProcessUserInput(ts : number): void 

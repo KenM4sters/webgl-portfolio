@@ -1,3 +1,4 @@
+import GUI from "lil-gui";
 import { SquareGeometry } from "../Geometry";
 import { Shader } from "../Shader";
 import { RenderTarget } from "../Types";
@@ -16,11 +17,11 @@ export class PostProcessor
         this.passess.push(screenPass);
     }
     
-    Init() : void 
+    Init(gui : GUI) : void 
     {
         for(const pass of this.passess) 
         {
-            pass.Init();
+            pass.Init(gui);
         } 
     }
 
@@ -29,10 +30,10 @@ export class PostProcessor
         var result : RenderTarget = sceneOutput;
         PostProcessor.sceneOutput = sceneOutput;
         
-        // for(const pass of this.passess) 
-        // {
-        //     result = pass.Render(result);
-        // }
+        for(const pass of this.passess) 
+        {
+            result = pass.Render(result);
+        }
     }
 
     Resize(w : number, h: number) : void 

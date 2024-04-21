@@ -6,7 +6,9 @@ import fragSrc from "../Shaders/HDR.frag?raw";
 import { Shader } from "../Shader";
 import { BufferType, RenderCommand } from "../RenderCommand";
 import { IndexBuffer } from "../Buffer";
-import { RenderTarget, TextureType } from "../Types";
+import { Ref, RenderTarget, TextureType } from "../Types";
+import { PostProcessor } from "./PostProcessor";
+import GUI from "lil-gui";
 
 export abstract class RenderPass
 {
@@ -14,7 +16,7 @@ export abstract class RenderPass
     {
         this.quad = geo;
     }
-    abstract Init() : void;
+    abstract Init(gui : GUI) : void;
     abstract Render(prevTarget : RenderTarget) : RenderTarget; 
     abstract Resize(w : number, h : number) : void;
 
@@ -30,7 +32,7 @@ export class ScreenPass extends RenderPass
         super(geo);
     } 
     
-    override Init(): void {
+    override Init(gui : GUI): void {
         this.shader = new Shader(vertSrc, fragSrc);
         this.output = 
         {
@@ -42,7 +44,15 @@ export class ScreenPass extends RenderPass
                 ClearDepthBit: false
             }
         };
+
+        gui.add(this.bloomStrength, 'val', 0, 1, 0.01).name("BloomStrength") ;
+        gui.add(this.exposure, 'val', 0, 50, 0.1).name("Exposure");
+
     }
+
+
+
+
 
     override Render(prevTarget : RenderTarget): RenderTarget {
         const EBO = this.quad.vertexArray.GetIndexBuffer();
@@ -64,10 +74,16 @@ export class ScreenPass extends RenderPass
         
         if(prevTarget.target)
         {
+            const srcTexture = PostProcessor.sceneOutput.target?.GetColorTexture();
             RenderCommand.BindTexture(prevTarget.target.GetColorTexture().GetId(), TextureType.Tex2D);
-            RenderCommand.SetInt(this.shader.GetId(), "sceneTex", 0);
+            RenderCommand.SetInt(this.shader.GetId(), "blurredTexture", 0);
+            if(srcTexture) RenderCommand.BindTexture(srcTexture.GetId(), TextureType.Tex2D);
+            RenderCommand.SetInt(this.shader.GetId(), "srcTexture", 1);
         } 
-
+        
+        RenderCommand.SetInt(this.shader.GetId(), "BloomStrength", this.bloomStrength.val);
+        RenderCommand.SetInt(this.shader.GetId(), "Exposure", this.exposure.val);
+        
         switch(EBO) 
         {
             default: RenderCommand.DrawIndexed(this.quad.drawFunction.shape, EBO.GetUniqueSize() / EBO.GetUniqueIndices().BYTES_PER_ELEMENT, EBO.GetUniqueOffset()); break;
@@ -79,7 +95,8 @@ export class ScreenPass extends RenderPass
         RenderCommand.UnbindBuffer(BufferType.Index);
         RenderCommand.UnbindFramebuffer();
         RenderCommand.UnbindRenderbuffer();
-        RenderCommand.UnBindTexture(TextureType.Tex2D);
+        RenderCommand.UnBindTexture(TextureType.Tex2D, 0);
+        RenderCommand.UnBindTexture(TextureType.Tex2D, 1);
 
         return this.output;
     }
@@ -87,4 +104,7 @@ export class ScreenPass extends RenderPass
     override Resize(w: number, h: number): void {
         
     }
+
+    bloomStrength : Ref<number> = {val: 0.04};
+    exposure : Ref<number> = {val: 1.0};
 };

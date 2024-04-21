@@ -5,7 +5,7 @@ precision highp float;
 out vec4 FragColor;
 in vec2 vUV;
 
-uniform sampler2D sceneTex;
+uniform sampler2D srcTexture;
 uniform sampler2D blurredTex;
 uniform float Exposure;
 uniform float BloomStrength;
@@ -21,20 +21,20 @@ vec3 ACESFilm(vec3 x) {
 
 vec3 bloom_none()
 {
-    vec3 hdrColor = texture(sceneTex, vUV).rgb;
+    vec3 hdrColor = texture(srcTexture, vUV).rgb;
     return hdrColor;
 }
 
 vec3 bloom_old()
 {
-    vec3 hdrColor = texture(sceneTex, vUV).rgb;
+    vec3 hdrColor = texture(srcTexture, vUV).rgb;
     vec3 bloomColor = texture(blurredTex, vUV).rgb;
     return hdrColor + bloomColor; // additive blending
 }
 
 vec3 bloom_new()
 {
-    vec3 hdrColor = texture(sceneTex, vUV).rgb;
+    vec3 hdrColor = texture(srcTexture, vUV).rgb;
     vec3 bloomColor = texture(blurredTex, vUV).rgb;
     return mix(hdrColor, bloomColor, BloomStrength); // linear interpolation
 }
@@ -46,7 +46,8 @@ void main() {
     finalHDR *= Exposure;
 
     vec3 tone_mapped = ACESFilm(finalHDR);
+    // vec3 tone_mapped = vec3(1.0, 0.0, 0.0);
 
     FragColor = vec4(tone_mapped, 1.0);
-    FragColor = vec4(texture(sceneTex, vUV).rgb, 1.0);
+    // FragColor = vec4(texture(srcTexture, vUV).rgb, 1.0);
 }
