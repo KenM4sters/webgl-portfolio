@@ -42,11 +42,11 @@ export default class BloomPass extends RenderPass
                 ClearColorBit: true,
                 ClearDepthBit: false
             }
-        };
-
+        };  
+        
         var mipSize : glm.vec2 = glm.vec2.fromValues(this.windowWidth, this.windowHeight);
         var iMipSize : glm.vec2 = glm.vec2.fromValues(Math.floor(this.windowWidth), Math.floor(this.windowHeight));
-
+        
         for(let i = 0; i < this.bloomParams.nMipMaps; i++) 
         {   
             mipSize = glm.vec2.scale(glm.vec2.create(), mipSize, 0.5);
@@ -65,7 +65,7 @@ export default class BloomPass extends RenderPass
             this.mipChain.push(new Texture2D(mipConfig));
         }
 
-        this.blurFBO = new Framebuffer(this.mipChain[0], false)
+        this.blurFBO = new Framebuffer(this.mipChain[0], false);
 
         RenderCommand.BindFramebuffer(this.blurFBO.GetFBO());
 
@@ -74,7 +74,7 @@ export default class BloomPass extends RenderPass
         RenderCommand.DrawFramebuffer(attachments);
         RenderCommand.UnbindFramebuffer();
         
-        // Prepping uniform locations for the source HDR texture from the Scene class.
+        // Prepping uniform locations for the source HDR texture from the Scene output.
         RenderCommand.UseShader(this.upsampleShader.GetId());
         RenderCommand.SetInt(this.upsampleShader.GetId(), "srcTexture", 0);
         RenderCommand.ReleaseShader();
@@ -87,7 +87,6 @@ export default class BloomPass extends RenderPass
     Render(prevTarget: RenderTarget): RenderTarget {
 
         // Get the source HDR scene texture from renderer and make sure it's valid.
-        const srcTexture = PostProcessor.sceneOutput.target?.GetColorTexture()
         const EBO = this.quad.vertexArray.GetIndexBuffer();
         RenderCommand.BindBuffer(IndexBuffer.Id, BufferType.Index);
 
@@ -105,7 +104,8 @@ export default class BloomPass extends RenderPass
 
         // Finally, draw our mesh (fullscreen 2d quad) to the screen with the upsampled, blurred texture.
         RenderCommand.UseShader(this.upsampleShader.GetId()); 
-        RenderCommand.BindTexture(this.mipChain[0].GetId(), TextureType.Tex2D);
+        RenderCommand.BindTexture(this.mipChain[0].GetId(), TextureType.Tex2D, 0);
+        if(prevTarget.target) RenderCommand.BindTexture(prevTarget.target.GetColorTexture().GetId(), TextureType.Tex2D, 1);
 
         switch(EBO) 
         {
@@ -122,11 +122,11 @@ export default class BloomPass extends RenderPass
     Resize(w: number, h: number): void {
         this.windowWidth = w;
         this.windowHeight = h;
-
-        if(this.output.target?.GetFBO()) RenderCommand.DeleteFramebuffer(this.output.target?.GetFBO());
-        if(this.output.target?.GetRBO()) RenderCommand.DeleteRenderBuffer(this.output.target?.GetRBO());
-        if(this.output.target?.GetColorTexture()) RenderCommand.DeleteTexture2D(this.output.target?.GetColorTexture().GetId());
-        if(this.blurFBO) RenderCommand.DeleteFramebuffer(this.blurFBO.GetFBO());
+        
+        if(this.output?.target?.GetFBO()) RenderCommand.DeleteFramebuffer(this.output.target?.GetFBO());
+        if(this.output?.target?.GetRBO()) RenderCommand.DeleteRenderBuffer(this.output.target?.GetRBO());
+        if(this.output?.target?.GetColorTexture()) RenderCommand.DeleteTexture2D(this.output.target?.GetColorTexture().GetId());
+        if(this.blurFBO?.GetFBO()) RenderCommand.DeleteFramebuffer(this.blurFBO.GetFBO());
 
         var bloomImageConfig : ImageConfig = 
         {
@@ -178,7 +178,8 @@ export default class BloomPass extends RenderPass
                 ClearDepthBit: false
             }
         };
-        RenderCommand.BindFramebuffer(this.blurFBO.GetFBO());
+
+        if(this.blurFBO?.GetFBO()) RenderCommand.BindFramebuffer(this.blurFBO.GetFBO());
 
         var attachments : number[] = [ ColorAttachments.COLOR_0 ];
 

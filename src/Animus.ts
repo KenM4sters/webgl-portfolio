@@ -60,8 +60,8 @@ export default class Animus extends App
         this.canvas.height = Math.round(this.windowHeight);
 
         
-            this.renderer.Resize(this.windowWidth, this.windowHeight);
-            this.scene.Resize(this.windowWidth, this.windowHeight);
+        this.scene.Resize(this.windowWidth, this.windowHeight);
+        this.renderer.Resize(this.windowWidth, this.windowHeight);
         
     }
 

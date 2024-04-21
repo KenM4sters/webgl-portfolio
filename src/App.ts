@@ -13,6 +13,9 @@ export default abstract class App
         this.context = canvas.getContext("webgl2") as WebGL2RenderingContext;
         if (!this.context) throw new Error("webgl context is not available!");
 
+        var ext = this.context.getExtension('EXT_color_buffer_float');
+        if (!ext) throw new Error('EXT_color_buffer_float is not supported');
+    
         // *IMOPRTANT* this method must be called before any other rendering commands are made.
         RenderCommand.SubmitContext(this.context); 
 

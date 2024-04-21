@@ -308,8 +308,9 @@ export class RenderCommand
         var temp : Array<number> = new Array<number>();
         for(const a of attachments) 
         {
-            temp.push(this.ConvertColorAttachmentsToNative(a));
+            temp.push(RenderCommand.ConvertColorAttachmentsToNative(a));
         }
+        
         RenderCommand.gl.drawBuffers(temp);
     }
 
@@ -374,11 +375,11 @@ export class RenderCommand
     }
     public static SetBlendFunc(a : number, b : number) : void
     {
-        RenderCommand.gl.blendFunc(this.ConvertBlendFunctionTypes(a), this.ConvertBlendFunctionTypes(b));
+        RenderCommand.gl.blendFunc(RenderCommand.ConvertBlendFunctionTypes(a), RenderCommand.ConvertBlendFunctionTypes(b));
     }
     public static SetBlendEquation(e : number) : void
     {
-        RenderCommand.gl.blendEquation(this.ConvertBlendFunctionEquationTypes(e));
+        RenderCommand.gl.blendEquation(RenderCommand.ConvertBlendFunctionEquationTypes(e));
     }
     
     public static SetClearColor(color : glm.vec4) : void
