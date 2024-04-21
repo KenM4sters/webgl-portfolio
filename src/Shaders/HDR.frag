@@ -46,8 +46,6 @@ void main() {
     finalHDR *= Exposure;
 
     vec3 tone_mapped = ACESFilm(finalHDR);
-    // vec3 tone_mapped = vec3(1.0, 0.0, 0.0);
 
     FragColor = vec4(tone_mapped, 1.0);
-    // FragColor = vec4(texture(srcTexture, vUV).rgb, 1.0);
 }

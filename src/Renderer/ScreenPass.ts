@@ -76,13 +76,13 @@ export class ScreenPass extends RenderPass
         {
             const srcTexture = PostProcessor.sceneOutput.target?.GetColorTexture();
             RenderCommand.BindTexture(prevTarget.target.GetColorTexture().GetId(), TextureType.Tex2D);
-            RenderCommand.SetInt(this.shader.GetId(), "blurredTexture", 0);
+            RenderCommand.SetFloat(this.shader.GetId(), "blurredTexture", 0);
             if(srcTexture) RenderCommand.BindTexture(srcTexture.GetId(), TextureType.Tex2D);
-            RenderCommand.SetInt(this.shader.GetId(), "srcTexture", 1);
+            RenderCommand.SetFloat(this.shader.GetId(), "srcTexture", 1);
         } 
         
-        RenderCommand.SetInt(this.shader.GetId(), "BloomStrength", this.bloomStrength.val);
-        RenderCommand.SetInt(this.shader.GetId(), "Exposure", this.exposure.val);
+        RenderCommand.SetFloat(this.shader.GetId(), "BloomStrength", this.bloomStrength.val);
+        RenderCommand.SetFloat(this.shader.GetId(), "Exposure", this.exposure.val);
         
         switch(EBO) 
         {
