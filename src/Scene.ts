@@ -15,6 +15,9 @@ import { Texture2D } from "./Texture";
 // Shaders
 import mvpVertSrc from "./Shaders/ModelViewProjection.vert?raw";
 import pbrFragSrc from "./Shaders/PhysicalMaterial.frag?raw";
+import skyVertSrc from "./Shaders/Sky.vert?raw";
+import skyFragSrc from "./Shaders/Sky.frag?raw";
+import Environment from "./Environment";
 
 
 export default class Scene
@@ -27,14 +30,27 @@ export default class Scene
         this.camera = new PerspectiveCamera([0.0, 2.0, 10.0], w, h);
 
         const PBR_MVP_Shader = new Shader(mvpVertSrc, pbrFragSrc);
-        // Mesh 1
-        var cubeGeo = new SphereGeometry(2, 100, 100);
-        var cubeMat = new PhysicalMaterial(PBR_MVP_Shader);
-        var cube = new Mesh(cubeGeo, cubeMat);
-        cube.transforms.Scale = glm.vec3.fromValues(0.4, 0.4, 0.4);
-        cube.transforms.Translation = glm.vec3.fromValues(0.0, 5.0, 0.0);
-        cube.transforms.ModelMatrix =  glm.mat4.translate(glm.mat4.create(), cube.transforms.ModelMatrix, cube.transforms.Translation);
-        this.Push(cube);
+        const skyboxShader = new Shader(skyVertSrc, skyFragSrc);
+        // small sphere
+        var plainSphereGeo = new SphereGeometry(2, 100, 100);
+        var plainSphereMat = new PhysicalMaterial(PBR_MVP_Shader);
+        var plainSphere = new Mesh(plainSphereGeo, plainSphereMat);
+        plainSphere.transforms.Scale = glm.vec3.fromValues(0.4, 0.4, 0.4);
+        plainSphere.transforms.Translation = glm.vec3.fromValues(0.0, 5.0, 0.0);
+        plainSphere.transforms.ModelMatrix =  glm.mat4.translate(glm.mat4.create(), plainSphere.transforms.ModelMatrix, plainSphere.transforms.Translation);
+        this.Push(plainSphere);
+
+        // skybox 
+        // var skyboxGeo = new SphereGeometry(100, 100, 100);
+        // var skyboxMat = new PhysicalMaterial(skyboxShader);
+        // var skybox = new Mesh(skyboxGeo, skyboxMat);
+        // this.Push(skybox);
+        // let bottomColor : glm.vec3 = glm.vec3.fromValues(0.0, 0.1, 1.0);
+        // let topColor : glm.vec3 = glm.vec3.fromValues(0.0, 0.0, 0.0);
+        // RenderCommand.UseShader(skybox.GetMaterial().GetShader().GetId());
+        // RenderCommand.SetVec3f(skyboxMat.GetShader().GetId(), "bottomColor", bottomColor);
+        // RenderCommand.SetVec3f(skyboxMat.GetShader().GetId(), "topColor", topColor);
+        // RenderCommand.ReleaseShader();
         
         // Mesh 2
         var floorGeo = new CubeGeometry();
@@ -74,35 +90,42 @@ export default class Scene
             }
         };
 
+
+        // Environment Map.
+        const envCube = new CubeGeometry();
+
+        this.environment = new Environment("/Textures/ocean.hdr", envCube);
+        
+
  
         // GUI Parameters
         // Cube
         const CubeFolder = Gui.addFolder('Cube');
-        CubeFolder.add(cube.transforms.Translation, '0', -100.0, 100.0, 0.01).name("PosX").onChange(() => {
-            cube.transforms.ModelMatrix =  glm.mat4.translate(glm.mat4.create(), cube.transforms.ModelMatrix, cube.transforms.Translation);
+        CubeFolder.add(plainSphere.transforms.Translation, '0', -100.0, 100.0, 0.01).name("PosX").onChange(() => {
+            plainSphere.transforms.ModelMatrix =  glm.mat4.translate(glm.mat4.create(), plainSphere.transforms.ModelMatrix, plainSphere.transforms.Translation);
         })
-        CubeFolder.add(cube.transforms.Translation, '1', -100.0, 100.0, 0.01).name("PosY").onChange(() => {
-            cube.transforms.ModelMatrix =  glm.mat4.translate(glm.mat4.create(), cube.transforms.ModelMatrix, cube.transforms.Translation);
+        CubeFolder.add(plainSphere.transforms.Translation, '1', -100.0, 100.0, 0.01).name("PosY").onChange(() => {
+            plainSphere.transforms.ModelMatrix =  glm.mat4.translate(glm.mat4.create(), plainSphere.transforms.ModelMatrix, plainSphere.transforms.Translation);
         })
-        CubeFolder.add(cube.transforms.Translation, '2', -100.0, 100.0, 0.01).name("PosZ").onChange(() => {
-            cube.transforms.ModelMatrix =  glm.mat4.translate(glm.mat4.create(), cube.transforms.ModelMatrix, cube.transforms.Translation);
+        CubeFolder.add(plainSphere.transforms.Translation, '2', -100.0, 100.0, 0.01).name("PosZ").onChange(() => {
+            plainSphere.transforms.ModelMatrix =  glm.mat4.translate(glm.mat4.create(), plainSphere.transforms.ModelMatrix, plainSphere.transforms.Translation);
         })
-        CubeFolder.add(cube.transforms.Scale, '0', -100.0, 100.0, 0.01).name("ScaleX").onChange(() => {
-            cube.transforms.ModelMatrix =  glm.mat4.scale(glm.mat4.create(), cube.transforms.ModelMatrix, cube.transforms.Scale);
+        CubeFolder.add(plainSphere.transforms.Scale, '0', -100.0, 100.0, 0.01).name("ScaleX").onChange(() => {
+            plainSphere.transforms.ModelMatrix =  glm.mat4.scale(glm.mat4.create(), plainSphere.transforms.ModelMatrix, plainSphere.transforms.Scale);
         })
-        CubeFolder.add(cube.transforms.Scale, '1', -100.0, 100.0, 0.01).name("ScaleY").onChange(() => {
-            cube.transforms.ModelMatrix =  glm.mat4.scale(glm.mat4.create(), cube.transforms.ModelMatrix, cube.transforms.Scale);
+        CubeFolder.add(plainSphere.transforms.Scale, '1', -100.0, 100.0, 0.01).name("ScaleY").onChange(() => {
+            plainSphere.transforms.ModelMatrix =  glm.mat4.scale(glm.mat4.create(), plainSphere.transforms.ModelMatrix, plainSphere.transforms.Scale);
         })
-        CubeFolder.add(cube.transforms.Scale, '2', -100.0, 100.0, 0.01).name("ScaleZ").onChange(() => {
-            cube.transforms.ModelMatrix =  glm.mat4.scale(glm.mat4.create(), cube.transforms.ModelMatrix, cube.transforms.Scale);
+        CubeFolder.add(plainSphere.transforms.Scale, '2', -100.0, 100.0, 0.01).name("ScaleZ").onChange(() => {
+            plainSphere.transforms.ModelMatrix =  glm.mat4.scale(glm.mat4.create(), plainSphere.transforms.ModelMatrix, plainSphere.transforms.Scale);
         })
-        if(cubeMat instanceof PhysicalMaterial) 
+        if(plainSphereMat instanceof PhysicalMaterial) 
         {
-            CubeFolder.add(cubeMat.Metallic, 'val',  0.0, 1.0, 0.01).name("Metallic");
-            CubeFolder.add(cubeMat.Roughness, 'val',  0.0, 1.0, 0.01).name("Roughness");
+            CubeFolder.add(plainSphereMat.Metallic, 'val',  0.0, 1.0, 0.01).name("Metallic");
+            CubeFolder.add(plainSphereMat.Roughness, 'val',  0.0, 1.0, 0.01).name("Roughness");
         }
-        CubeFolder.add(cubeMat.emission, 'val',  0.0, 1.0, 0.01).name("Emission");
-        CubeFolder.add(cubeMat.isUsingTextures, 'val').name("isUsingTextures");
+        CubeFolder.add(plainSphereMat.emission, 'val',  0.0, 1.0, 0.01).name("Emission");
+        CubeFolder.add(plainSphereMat.isUsingTextures, 'val').name("isUsingTextures");
 
 
         // Floor 
@@ -151,6 +174,15 @@ export default class Scene
         LightsFolder.add(light1.color, '0', 0.0, 1.0, 0.01).name("Light1|ColorR");
         LightsFolder.add(light1.color, '1', 0.0, 1.0, 0.01).name("Light1|ColorG");
         LightsFolder.add(light1.color, '2', 0.0, 1.0, 0.01).name("Light1|ColorB");
+
+        // Skybox
+        // const skyboxFolder = Gui.addFolder("Skybox");
+        // skyboxFolder.add(bottomColor, '0', 0.0, 20.0, 0.1).name("BottomColor|R");
+        // skyboxFolder.add(bottomColor, '1', 0.0, 20.0, 0.1).name("BottomColor|G");
+        // skyboxFolder.add(bottomColor, '2', 0.0, 20.0, 0.1).name("BottomColor|B");
+        // skyboxFolder.add(topColor, '0', 0.0, 20.0, 0.1).name("topColor|R");
+        // skyboxFolder.add(topColor, '1', 0.0, 20.0, 0.1).name("topColor|G");
+        // skyboxFolder.add(topColor, '2', 0.0, 20.0, 0.1).name("topColor|B");
     }
 
     public Render(ts : number): void 
@@ -273,5 +305,7 @@ export default class Scene
     public meshes : Array<Mesh> = new Array<Mesh>();
     public lights : Array<Light> = new Array<Light>();
     public camera !: PerspectiveCamera; 
+    public environment !: Environment;
     public output !: RenderTarget;
+
 };

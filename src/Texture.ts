@@ -6,12 +6,19 @@ import { RenderCommand } from "./RenderCommand";
 // classes.
 abstract class Texture 
 {
-    constructor(config : ImageConfig) 
+    constructor(config : ImageConfig | string) 
     {
-        this.config = config;
         this.Id = {val: RenderCommand.CreateTexture()};
-        this.data = {val: new Float32Array(config.Width*config.Height*4)}
-        this.Init();
+        if(typeof config == "string") 
+        {
+            this.LoadImage(config);
+        } else 
+        {
+            this.config = config;
+            this.data = {val: new Float32Array(config.Width*config.Height*4)}
+            this.Init();
+        }
+        
     }
 
     abstract Init() : void;
@@ -27,8 +34,8 @@ abstract class Texture
     SetData(texData : Ref<Float32Array | HTMLImageElement>) : void { this.data = texData; this.Init();}
     
     protected Id : Ref<WebGLTexture>;
-    protected config : ImageConfig;
-    protected data : Ref<Float32Array | HTMLImageElement>;
+    protected config !: ImageConfig;
+    protected data !: Ref<Float32Array | HTMLImageElement>;
 };
 
 
@@ -37,7 +44,7 @@ abstract class Texture
 // that can be loaded via the LoadImage() method.
 export class Texture2D extends Texture 
 {
-    constructor(config : ImageConfig) 
+    constructor(config : ImageConfig | string) 
     {
         super(config);
     }
@@ -56,6 +63,43 @@ export class Texture2D extends Texture
         image.addEventListener("load", () => {
             RenderCommand.BindTexture(this.Id, TextureType.Tex2D, 0);
             RenderCommand.SetTexture2DImage(this.config, image);
+            RenderCommand.GenerateMipMap(TextureType.Tex2D);
+            RenderCommand.UnBindTexture(TextureType.Tex2D, 0);
+
+            this.data.val = image;
+            this.config.Width = image.width;
+            this.config.Height = image.height;
+        })
+    }
+
+    override Resize(w : number, h : number): void {
+        RenderCommand.DeleteTexture2D(this.Id);
+        this.config.Width = w;
+        this.config.Height = h;
+        this.Init();
+    }
+};
+export class CubeTexture extends Texture 
+{
+    constructor(config : ImageConfig | string) 
+    {
+        super(config);  
+    }
+
+    override Init() : void 
+    {
+        RenderCommand.BindTexture(this.Id, TextureType.Tex2D, 0);
+        RenderCommand.SetTextureCubeMapArray(this.config, this.data as Ref<Float32Array>);
+    }
+
+    // Loads an Image object from a given filepath and sets the member data variable to the image object.
+    override LoadImage(filepath : string) : void 
+    {
+        var image = new Image();
+        image.src = filepath;
+        image.addEventListener("load", () => {
+            RenderCommand.BindTexture(this.Id, TextureType.Tex2D, 0);
+            RenderCommand.SetTextureCubeMapImage(this.config, image);
             RenderCommand.GenerateMipMap(TextureType.Tex2D);
             RenderCommand.UnBindTexture(TextureType.Tex2D, 0);
 

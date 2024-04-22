@@ -1,6 +1,5 @@
 import GUI from "lil-gui";
 import { SquareGeometry } from "../Geometry";
-import { Shader } from "../Shader";
 import { RenderTarget } from "../Types";
 import BloomPass from "./BloomPass";
 import {RenderPass, ScreenPass} from "./ScreenPass";

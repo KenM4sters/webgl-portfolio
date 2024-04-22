@@ -1,7 +1,9 @@
 import * as glm from "gl-matrix";
 import { VertexBuffer, IndexBuffer } from "./Buffer.ts";
-import { BlendFunctionEquationTypes, BlendFunctionTypes, ColorAttachments, DataSizes, GeometryDrawFunctionShapes, GeometryDrawFunctionTypes, ImageChannels, ImageConfig, Ref, ShaderDataType, ShaderType, TextureType } from "./Types.ts";
+import { FunctionEquationTypes, BlendFunctionTypes, ColorAttachments, DataSizes, GeometryDrawFunctionShapes, GeometryDrawFunctionTypes, ImageChannels, ImageConfig, Ref, ShaderDataType, ShaderType, TextureType } from "./Types.ts";
 import { Mesh } from "./Mesh.ts";
+import { Geometry } from "./Geometry.ts";
+import { Shader } from "./Shader.ts";
 
 
 export enum BufferType 
@@ -259,11 +261,28 @@ export class RenderCommand
         RenderCommand.gl.texParameteri(RenderCommand.gl.TEXTURE_2D, RenderCommand.gl.TEXTURE_WRAP_S, RenderCommand.gl.CLAMP_TO_EDGE);
         RenderCommand.gl.texParameteri(RenderCommand.gl.TEXTURE_2D, RenderCommand.gl.TEXTURE_WRAP_T, RenderCommand.gl.CLAMP_TO_EDGE);
         // Set data.
-        // RenderCommand.gl.texImage2D(RenderCommand.ConvertTextureTypeToNative(config.TargetType), config.MipMapLevel, RenderCommand.ConvertImageChannelsToNative(config.NChannels), config.Width, config.Height, 0, RenderCommand.ConvertImageChannelsToNative(config.Format), RenderCommand.ConvertDataSizes(config.DataType), data.val);
-        RenderCommand.gl.texImage2D(RenderCommand.gl.TEXTURE_2D, config.MipMapLevel, RenderCommand.gl.RGBA32F, config.Width, config.Height, 0, RenderCommand.gl.RGBA, RenderCommand.gl.FLOAT, data.val);
-
+        RenderCommand.gl.texImage2D(RenderCommand.ConvertTextureTypeToNative(config.TargetType), config.MipMapLevel, RenderCommand.ConvertImageChannelsToNative(config.NChannels), config.Width, config.Height, 0, RenderCommand.ConvertImageChannelsToNative(config.Format), RenderCommand.ConvertDataSizes(config.DataType), data.val);
+        // RenderCommand.gl.texImage2D(RenderCommand.gl.TEXTURE_2D, config.MipMapLevel, RenderCommand.gl.RGBA32F, config.Width, config.Height, 0, RenderCommand.gl.RGBA, RenderCommand.gl.FLOAT, data.val);
     }  
     public static SetTexture2DImage(config : ImageConfig, data : HTMLImageElement) : void 
+    {
+        RenderCommand.gl.texImage2D(RenderCommand.ConvertTextureTypeToNative(config.TargetType), config.MipMapLevel, RenderCommand.ConvertImageChannelsToNative(config.NChannels), RenderCommand.ConvertImageChannelsToNative(config.Format), RenderCommand.ConvertDataSizes(config.DataType), data);
+    }
+    public static SetTextureCubeMapArray(config : ImageConfig, data : Ref<Float32Array>) : void 
+    {
+        if(data instanceof HTMLImageElement) throw new Error("RenderCommand | Calling SetTexture2DArray on an image element!");
+        // Initialize texture parameters
+        RenderCommand.gl.texParameteri(RenderCommand.gl.TEXTURE_CUBE_MAP, RenderCommand.gl.TEXTURE_MIN_FILTER, RenderCommand.gl.LINEAR);
+        RenderCommand.gl.texParameteri(RenderCommand.gl.TEXTURE_CUBE_MAP, RenderCommand.gl.TEXTURE_MAG_FILTER, RenderCommand.gl.LINEAR);
+        RenderCommand.gl.texParameteri(RenderCommand.gl.TEXTURE_CUBE_MAP, RenderCommand.gl.TEXTURE_WRAP_S, RenderCommand.gl.CLAMP_TO_EDGE);
+        RenderCommand.gl.texParameteri(RenderCommand.gl.TEXTURE_CUBE_MAP, RenderCommand.gl.TEXTURE_WRAP_T, RenderCommand.gl.CLAMP_TO_EDGE);
+        RenderCommand.gl.texParameteri(RenderCommand.gl.TEXTURE_CUBE_MAP, RenderCommand.gl.TEXTURE_WRAP_R, RenderCommand.gl.CLAMP_TO_EDGE);
+        // Set data.
+        for(let i = 0; i < 6; i++)
+            RenderCommand.gl.texImage2D(RenderCommand.gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, config.MipMapLevel, RenderCommand.ConvertImageChannelsToNative(config.NChannels), config.Width, config.Height, 0, RenderCommand.ConvertImageChannelsToNative(config.Format), RenderCommand.ConvertDataSizes(config.DataType), data.val);
+        // RenderCommand.gl.texImage2D(RenderCommand.gl.TEXTURE_2D, config.MipMapLevel, RenderCommand.gl.RGBA32F, config.Width, config.Height, 0, RenderCommand.gl.RGBA, RenderCommand.gl.FLOAT, data.val);
+    }  
+    public static SetTextureCubeMapImage(config : ImageConfig, data : HTMLImageElement) : void 
     {
         RenderCommand.gl.texImage2D(RenderCommand.ConvertTextureTypeToNative(config.TargetType), config.MipMapLevel, RenderCommand.ConvertImageChannelsToNative(config.NChannels), RenderCommand.ConvertImageChannelsToNative(config.Format), RenderCommand.ConvertDataSizes(config.DataType), data);
     }
@@ -296,6 +315,17 @@ export class RenderCommand
     {
         const attachmentUnit = RenderCommand.gl.COLOR_ATTACHMENT0 + unit;
         RenderCommand.gl.framebufferTexture2D(RenderCommand.gl.FRAMEBUFFER, attachmentUnit, RenderCommand.gl.TEXTURE_2D, targetTexture.val, 0); 
+        
+        // Check for any errors.
+        const status = RenderCommand.gl.checkFramebufferStatus(RenderCommand.gl.FRAMEBUFFER);
+        if (status !== RenderCommand.gl.FRAMEBUFFER_COMPLETE) {
+            console.error('Framebuffer is not complete: ' + status.toString(16));
+        }    
+    }
+    public static SetFramebufferCubeMapColorAttachment(targetTexture : Ref<WebGLTexture | null>, cubeFace : number, unit : number = 0) : void
+    {
+        const attachmentUnit = RenderCommand.gl.COLOR_ATTACHMENT0 + unit;
+        RenderCommand.gl.framebufferTexture2D(RenderCommand.gl.FRAMEBUFFER, attachmentUnit, RenderCommand.gl.TEXTURE_CUBE_MAP_POSITIVE_X + cubeFace, targetTexture.val, 0); 
         
         // Check for any errors.
         const status = RenderCommand.gl.checkFramebufferStatus(RenderCommand.gl.FRAMEBUFFER);
@@ -373,13 +403,17 @@ export class RenderCommand
     {
         b ? RenderCommand.gl.enable(RenderCommand.gl.BLEND) : RenderCommand.gl.disable(RenderCommand.gl.BLEND);
     }
-    public static SetBlendFunc(a : number, b : number) : void
+    public static SetBlendFunc(a : BlendFunctionTypes, b : BlendFunctionTypes) : void
     {
         RenderCommand.gl.blendFunc(RenderCommand.ConvertBlendFunctionTypes(a), RenderCommand.ConvertBlendFunctionTypes(b));
     }
-    public static SetBlendEquation(e : number) : void
+    public static SetDepthFunc(e : FunctionEquationTypes) : void
     {
-        RenderCommand.gl.blendEquation(RenderCommand.ConvertBlendFunctionEquationTypes(e));
+        RenderCommand.gl.depthFunc(RenderCommand.ConvertFunctionEquationTypes(e));
+    }
+    public static SetBlendEquation(e : FunctionEquationTypes) : void
+    {
+        RenderCommand.gl.blendEquation(RenderCommand.ConvertFunctionEquationTypes(e));
     }
     
     public static SetClearColor(color : glm.vec4) : void
@@ -427,6 +461,23 @@ export class RenderCommand
         };
         
 
+        // Cleanup.
+        RenderCommand.UnbindVertexArray();
+        RenderCommand.UnbindBuffer(BufferType.Index);
+        RenderCommand.ReleaseShader();
+    }
+    public static DrawGeometry(geo : Geometry, shader : Shader) : void
+    {
+        var VAO = geo.vertexArray;
+        var EBO = VAO.GetIndexBuffer();
+
+        // Bind the vertex array object and shader program.
+        RenderCommand.BindVertexArray(VAO.GetId());
+        RenderCommand.UseShader(shader.GetId());
+
+        // Make the correct draw call.
+        if(EBO) RenderCommand.DrawIndexed(geo.drawFunction.shape, EBO.GetUniqueSize() / EBO.GetUniqueIndices().BYTES_PER_ELEMENT , EBO.GetUniqueOffset());
+    
         // Cleanup.
         RenderCommand.UnbindVertexArray();
         RenderCommand.UnbindBuffer(BufferType.Index);
@@ -531,11 +582,13 @@ export class RenderCommand
 
         return 0;
     }
-    private static ConvertBlendFunctionEquationTypes(type : BlendFunctionEquationTypes) : number 
+    private static ConvertFunctionEquationTypes(type : FunctionEquationTypes) : number 
     {
         switch(type) 
         { 
-            case BlendFunctionEquationTypes.FUNC_ADD: return RenderCommand.gl.FUNC_ADD;
+            case FunctionEquationTypes.FUNC_ADD: return RenderCommand.gl.FUNC_ADD;
+            case FunctionEquationTypes.LEQUAL: return RenderCommand.gl.LEQUAL;
+            case FunctionEquationTypes.EQUAL: return RenderCommand.gl.EQUAL;
         }
 
         return 0;

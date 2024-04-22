@@ -4,7 +4,7 @@ import { SquareGeometry } from "../Geometry";
 import { BufferType, RenderCommand } from "../RenderCommand";
 import { Shader } from "../Shader";
 import { Texture2D } from "../Texture";
-import { BlendFunctionEquationTypes, BlendFunctionTypes, ColorAttachments, DataSizes, ImageChannels, ImageConfig, Ref, RenderTarget, TextureType } from "../Types";
+import { FunctionEquationTypes, BlendFunctionTypes, ColorAttachments, DataSizes, ImageChannels, ImageConfig, Ref, RenderTarget, TextureType } from "../Types";
 import { RenderPass } from "./ScreenPass";
 import { PostProcessor } from "./PostProcessor";
 
@@ -233,7 +233,7 @@ export default class BloomPass extends RenderPass
 
         RenderCommand.EnableAdditiveBlending(true);
         RenderCommand.SetBlendFunc(BlendFunctionTypes.ONE, BlendFunctionTypes.ONE);
-        RenderCommand.SetBlendEquation(BlendFunctionEquationTypes.FUNC_ADD);
+        RenderCommand.SetBlendEquation(FunctionEquationTypes.FUNC_ADD);
         
         const EBO = this.quad.vertexArray.GetIndexBuffer();
         RenderCommand.BindBuffer(IndexBuffer.Id, BufferType.Index);

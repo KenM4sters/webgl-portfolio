@@ -113,9 +113,11 @@ export enum BlendFunctionTypes
     ONE
 };
 
-export enum BlendFunctionEquationTypes 
+export enum FunctionEquationTypes 
 {
     FUNC_ADD,
+    LEQUAL,
+    EQUAL
 };
 
 export interface RenderConfig 
