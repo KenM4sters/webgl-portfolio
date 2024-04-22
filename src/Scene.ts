@@ -28,11 +28,11 @@ export default class Scene
 
         const PBR_MVP_Shader = new Shader(mvpVertSrc, pbrFragSrc);
         // Mesh 1
-        var cubeGeo = new CubeGeometry();
+        var cubeGeo = new SphereGeometry(2, 100, 100);
         var cubeMat = new PhysicalMaterial(PBR_MVP_Shader);
         var cube = new Mesh(cubeGeo, cubeMat);
-        cube.transforms.Scale = glm.vec3.fromValues(1.0, 1.0, 1.0);
-        cube.transforms.Translation = glm.vec3.fromValues(-1.0, 0.55, 0.0);
+        cube.transforms.Scale = glm.vec3.fromValues(0.4, 0.4, 0.4);
+        cube.transforms.Translation = glm.vec3.fromValues(0.0, 5.0, 0.0);
         cube.transforms.ModelMatrix =  glm.mat4.translate(glm.mat4.create(), cube.transforms.ModelMatrix, cube.transforms.Translation);
         this.Push(cube);
         
@@ -45,19 +45,9 @@ export default class Scene
         floor.transforms.ModelMatrix =  glm.mat4.translate(glm.mat4.create(), floor.transforms.ModelMatrix, floor.transforms.Translation);
         this.Push(floor);
 
-        // Sphere 1
-        var sphereGeo = new SphereGeometry(2, 100, 100);
-        var sphereMat = new PhysicalMaterial(PBR_MVP_Shader);
-        var sphere = new Mesh(sphereGeo, sphereMat); 
-        sphere.transforms.Translation = glm.vec3.fromValues(0.0, 5.0, 0.0);
-        sphere.transforms.ModelMatrix = glm.mat4.translate(glm.mat4.create(), sphere.transforms.ModelMatrix, sphere.transforms.Translation);
-        this.Push(sphere);
-
         // Light 1
-        var light1 = new PointLight(glm.vec3.fromValues(1.0, 1.0, 1.0), 1.0);
-        light1.intensity = 70.0;
-        light1.color = glm.vec3.fromValues(0.0, 0.4, 0.2);
-        light1.transforms.Translation = glm.vec3.fromValues(1.0, 4.0, 1.6);
+        var light1 = new PointLight(glm.vec3.fromValues(0.0, 0.4, 0.4), 20.0);
+        light1.transforms.Translation = glm.vec3.fromValues(6.0, 4.0, 4.0);
         light1.transforms.ModelMatrix = glm.mat4.translate(glm.mat4.create(), light1.transforms.ModelMatrix, light1.transforms.Translation);
         this.Push(light1);
 
