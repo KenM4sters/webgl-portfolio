@@ -50,10 +50,6 @@ export class ScreenPass extends RenderPass
 
     }
 
-
-
-
-
     override Render(prevTarget : RenderTarget): RenderTarget {
         const EBO = this.quad.vertexArray.GetIndexBuffer();
 
@@ -75,10 +71,10 @@ export class ScreenPass extends RenderPass
         if(prevTarget.target)
         {
             const srcTexture = PostProcessor.sceneOutput.target?.GetColorTexture();
-            RenderCommand.BindTexture(prevTarget.target.GetColorTexture().GetId(), TextureType.Tex2D);
-            RenderCommand.SetFloat(this.shader.GetId(), "blurredTexture", 0);
-            if(srcTexture) RenderCommand.BindTexture(srcTexture.GetId(), TextureType.Tex2D);
-            RenderCommand.SetFloat(this.shader.GetId(), "srcTexture", 1);
+            if(srcTexture) RenderCommand.BindTexture(srcTexture.GetId(), TextureType.Tex2D, 0);
+            RenderCommand.SetInt(this.shader.GetId(), "srcTex", 0);
+            RenderCommand.BindTexture(prevTarget.target.GetColorTexture().GetId(), TextureType.Tex2D, 1);
+            RenderCommand.SetInt(this.shader.GetId(), "blurredTex", 1);
         } 
         
         RenderCommand.SetFloat(this.shader.GetId(), "BloomStrength", this.bloomStrength.val);

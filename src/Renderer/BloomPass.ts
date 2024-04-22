@@ -12,6 +12,7 @@ import { PostProcessor } from "./PostProcessor";
 import upSamplingFrag from "../Shaders/UpSampling.frag?raw";
 import downSamplingFrag from "../Shaders/DownSampling.frag?raw";
 import rawVert from "../Shaders/Raw.vert?raw"; 
+import rawFrag from "../Shaders/Raw.frag?raw"; 
 import { IndexBuffer } from "../Buffer";
 import GUI from "lil-gui";
 
@@ -23,6 +24,49 @@ export default class BloomPass extends RenderPass
     }
 
     Init(gui : GUI): void {
+
+        this.shader = new Shader(rawVert, rawFrag);
+        RenderCommand.UseShader(this.shader.GetId());
+        RenderCommand.SetInt(this.shader.GetId(), "srcTexture", 0);
+        RenderCommand.ReleaseShader();
+        
+        var mipSize : glm.vec2 = glm.vec2.fromValues(this.windowWidth, this.windowHeight);
+        var iMipSize : glm.vec2 = glm.vec2.fromValues(Math.floor(this.windowWidth), Math.floor(this.windowHeight));
+        
+        for(let i = 0; i < this.bloomParams.nMipMaps; i++) 
+        {   
+            mipSize = glm.vec2.scale(glm.vec2.create(), mipSize, 0.5);
+            iMipSize = glm.vec2.scale(glm.vec2.create(), iMipSize, 0.5);
+
+            var mipConfig : ImageConfig = 
+            {
+                TargetType: TextureType.Tex2D,
+                MipMapLevel: 0,
+                NChannels: ImageChannels.RGBA32F,
+                Width: mipSize[0],
+                Height: mipSize[1],
+                Format: ImageChannels.RGBA,
+                DataType: DataSizes.FLOAT   
+            }
+            this.mipChain.push(new Texture2D(mipConfig));
+        }
+
+        this.blurFBO = new Framebuffer(this.mipChain[0], false);
+
+        RenderCommand.BindFramebuffer(this.blurFBO.GetFBO());
+
+        var attachments : number[] = [ ColorAttachments.COLOR_0 ];
+        RenderCommand.DrawFramebuffer(attachments);
+
+        RenderCommand.UnbindFramebuffer();
+        
+        // Prepping uniform locations for the source HDR texture from the Scene output.
+        RenderCommand.UseShader(this.upsampleShader.GetId());
+        RenderCommand.SetInt(this.upsampleShader.GetId(), "srcTexture", 0);
+        RenderCommand.ReleaseShader();
+        RenderCommand.UseShader(this.downsampleShader.GetId());
+        RenderCommand.SetInt(this.downsampleShader.GetId(), "srcTexture", 0);
+        RenderCommand.ReleaseShader();
 
         var bloomImageConfig : ImageConfig = 
         {
@@ -43,54 +87,19 @@ export default class BloomPass extends RenderPass
                 ClearColorBit: true,
                 ClearDepthBit: false
             }
-        };  
-        
-        var mipSize : glm.vec2 = glm.vec2.fromValues(this.windowWidth, this.windowHeight);
-        var iMipSize : glm.vec2 = glm.vec2.fromValues(Math.floor(this.windowWidth), Math.floor(this.windowHeight));
-        
-        for(let i = 0; i < this.bloomParams.nMipMaps; i++) 
-        {   
-            mipSize = glm.vec2.scale(glm.vec2.create(), mipSize, 0.5);
-            iMipSize = glm.vec2.scale(glm.vec2.create(), iMipSize, 0.5);
+        }; 
 
-            var mipConfig : ImageConfig = 
-            {
-                TargetType: TextureType.Tex2D,
-                MipMapLevel: 0,
-                NChannels: ImageChannels.RGBA32F,
-                Width: mipSize[0],
-                Height: mipSize[1],
-                Format: ImageChannels.RGBA,
-                DataType: DataSizes.FLOAT
-            }
-            this.mipChain.push(new Texture2D(mipConfig));
-        }
-
-        this.blurFBO = new Framebuffer(this.mipChain[0], false);
-
-        RenderCommand.BindFramebuffer(this.blurFBO.GetFBO());
-
-        var attachments : number[] = [ ColorAttachments.COLOR_0 ];
-  
-        RenderCommand.DrawFramebuffer(attachments);
         RenderCommand.UnbindFramebuffer();
-        
-        // Prepping uniform locations for the source HDR texture from the Scene output.
-        RenderCommand.UseShader(this.upsampleShader.GetId());
-        RenderCommand.SetInt(this.upsampleShader.GetId(), "srcTexture", 0);
-        RenderCommand.ReleaseShader();
-        RenderCommand.UseShader(this.downsampleShader.GetId());
-        RenderCommand.SetInt(this.downsampleShader.GetId(), "srcTexture", 0);
-        RenderCommand.ReleaseShader();
-        
     }
 
     Render(prevTarget: RenderTarget): RenderTarget {
 
         // Get the source HDR scene texture from renderer and make sure it's valid.
         const EBO = this.quad.vertexArray.GetIndexBuffer();
-        RenderCommand.BindBuffer(IndexBuffer.Id, BufferType.Index);
+        const VAO = this.quad.vertexArray.GetId();
 
+        RenderCommand.BindVertexArray(VAO);
+        RenderCommand.BindBuffer(IndexBuffer.Id, BufferType.Index);
         RenderCommand.BindFramebuffer(this.blurFBO.GetFBO()); // Make sure you've bound the bloomFBO.
 
         // Firstly, we downsample the source texture 'BloomControls.nMipMap' times.
@@ -99,15 +108,14 @@ export default class BloomPass extends RenderPass
         this.RenderUpSamples();
 
         RenderCommand.UnbindFramebuffer();
-        RenderCommand.SetViewportDimensions(this.windowWidth, this.windowHeight); // !!Remember to set the viewport dimnesions back to the screen width and height.
+        RenderCommand.SetViewportDimensions(this.windowWidth, this.windowHeight); // !!Remember to set the viewport dimensions back to the screen width and height.
 
         if(this.output.target) RenderCommand.BindFramebuffer(this.output.target.GetFBO());
 
         // Finally, draw our mesh (fullscreen 2d quad) to the screen with the upsampled, blurred texture.
-        RenderCommand.UseShader(this.upsampleShader.GetId()); 
+        RenderCommand.UseShader(this.shader.GetId()); 
         RenderCommand.BindTexture(this.mipChain[0].GetId(), TextureType.Tex2D, 0);
-        if(prevTarget.target) RenderCommand.BindTexture(prevTarget.target.GetColorTexture().GetId(), TextureType.Tex2D, 1);
-
+  
         switch(EBO) 
         {
             default: RenderCommand.DrawIndexed(this.quad.drawFunction.shape, EBO.GetUniqueSize() / EBO.GetUniqueIndices().BYTES_PER_ELEMENT, EBO.GetUniqueOffset()); break;
@@ -122,8 +130,8 @@ export default class BloomPass extends RenderPass
 
     Resize(w: number, h: number): void {
         this.windowWidth = w;
-        this.windowHeight = h;
-
+        this.windowHeight = h;;
+        
         if(!this.output) return;
         
         if(this.output?.target?.GetFBO()) RenderCommand.DeleteFramebuffer(this.output.target?.GetFBO());
@@ -178,33 +186,32 @@ export default class BloomPass extends RenderPass
         RenderCommand.BindFramebuffer(this.blurFBO.GetFBO());
 
         var attachments : number[] = [ ColorAttachments.COLOR_0 ];
-  
         RenderCommand.DrawFramebuffer(attachments);
+
         RenderCommand.UnbindFramebuffer();
     }
 
 
     RenderDownSamples() : void 
-    {
-        RenderCommand.BindFramebuffer(this.blurFBO.GetFBO());
-        
+    {        
         RenderCommand.UseShader(this.downsampleShader?.GetId());
-        RenderCommand.BindTexture(PostProcessor.sceneOutput.target?.GetColorTexture().GetId() as Ref<WebGLTexture>, TextureType.Tex2D);
+        if(PostProcessor.sceneOutput.target) 
+            RenderCommand.BindTexture(PostProcessor.sceneOutput.target.GetColorTexture().GetId(), TextureType.Tex2D);
+
         const EBO = this.quad.vertexArray.GetIndexBuffer();
         RenderCommand.BindBuffer(IndexBuffer.Id, BufferType.Index);
 
         for(let i = 0; i < this.mipChain.length; i ++) 
-        {
+        { 
             const bloomMip = this.mipChain[i];
-            var mipConfig = bloomMip.GetConfig();
+            var mipConfig = bloomMip.GetConfig();   
             
             RenderCommand.SetViewportDimensions(mipConfig.Width, mipConfig.Height);
             RenderCommand.SetFramebufferColorAttachment(bloomMip.GetId(), 0);
             
-            RenderCommand.UseShader(this.downsampleShader?.GetId());
+            RenderCommand.UseShader(this.downsampleShader.GetId());
             RenderCommand.SetVec2f(this.downsampleShader.GetId(), "srcResolution", glm.vec2.fromValues(mipConfig.Width, mipConfig.Height));
 
-            
             switch(EBO) 
             {
                 default: RenderCommand.DrawIndexed(this.quad.drawFunction.shape, EBO.GetUniqueSize() / EBO.GetUniqueIndices().BYTES_PER_ELEMENT, EBO.GetUniqueOffset()); break;
