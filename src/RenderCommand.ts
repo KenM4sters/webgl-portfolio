@@ -403,11 +403,11 @@ export class RenderCommand
         {
             case GeometryDrawFunctionShapes.TRIANGLES: RenderCommand.gl.drawArrays(RenderCommand.ConvertShapeToNativeShape(shape), 0, nVertices); break; 
             case GeometryDrawFunctionShapes.TRIANGLES_STRIP: RenderCommand.gl.drawArrays(RenderCommand.ConvertShapeToNativeShape(shape), 0, nVertices); break;
-        }
+        }        
     }
     public static DrawIndexed(shape : GeometryDrawFunctionShapes, count : number, offset : number) : void
     {
-        RenderCommand.gl.drawElements(RenderCommand.ConvertShapeToNativeShape(shape), count, RenderCommand.gl.UNSIGNED_SHORT, offset);
+        RenderCommand.gl.drawElements(RenderCommand.ConvertShapeToNativeShape(shape), count, RenderCommand.gl.UNSIGNED_SHORT, offset);        
     }
     public static DrawMesh(mesh : Mesh) : void
     {
@@ -425,6 +425,7 @@ export class RenderCommand
             case GeometryDrawFunctionTypes.DRAW_ARRAYS: RenderCommand.Draw(mesh.GetGeometry().drawFunction.shape, VAO.GetVertexBuffer().GetVerticesCount()); break;
             case GeometryDrawFunctionTypes.DRAW_ARRAYS_INDEXED: if(EBO) RenderCommand.DrawIndexed(mesh.GetGeometry().drawFunction.shape, EBO.GetUniqueSize() / EBO.GetUniqueIndices().BYTES_PER_ELEMENT , EBO.GetUniqueOffset()); break; 
         };
+        
 
         // Cleanup.
         RenderCommand.UnbindVertexArray();

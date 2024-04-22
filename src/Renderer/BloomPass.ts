@@ -267,7 +267,7 @@ export default class BloomPass extends RenderPass
     private downsampleShader : Shader = new Shader(rawVert, downSamplingFrag);
     private bloomParams : {nMipMaps : number, FilterRadius : number} = 
         { 
-            nMipMaps: 8,
+            nMipMaps: 1,
             FilterRadius: 0.002
         };
     private windowWidth !: number;

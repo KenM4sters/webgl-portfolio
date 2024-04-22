@@ -1,7 +1,7 @@
 import GUI from "lil-gui";
 import * as glm from "gl-matrix"
 import { Mesh } from "./Mesh";
-import { CubeGeometry } from "./Geometry";
+import { CubeGeometry, SphereGeometry } from "./Geometry";
 import { PhysicalMaterial } from "./Material";
 import { Shader } from "./Shader";
 import { Light, PointLight } from "./Light";
@@ -44,6 +44,14 @@ export default class Scene
         floor.transforms.Translation = glm.vec3.fromValues(0.0, -0.6, 0.0);
         floor.transforms.ModelMatrix =  glm.mat4.translate(glm.mat4.create(), floor.transforms.ModelMatrix, floor.transforms.Translation);
         this.Push(floor);
+
+        // Sphere 1
+        var sphereGeo = new SphereGeometry(2, 100, 100);
+        var sphereMat = new PhysicalMaterial(PBR_MVP_Shader);
+        var sphere = new Mesh(sphereGeo, sphereMat); 
+        sphere.transforms.Translation = glm.vec3.fromValues(0.0, 5.0, 0.0);
+        sphere.transforms.ModelMatrix = glm.mat4.translate(glm.mat4.create(), sphere.transforms.ModelMatrix, sphere.transforms.Translation);
+        this.Push(sphere);
 
         // Light 1
         var light1 = new PointLight(glm.vec3.fromValues(1.0, 1.0, 1.0), 1.0);
