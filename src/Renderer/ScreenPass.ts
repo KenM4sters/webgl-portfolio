@@ -101,6 +101,6 @@ export class ScreenPass extends RenderPass
         
     }
 
-    bloomStrength : Ref<number> = {val: 0.04};
+    bloomStrength : Ref<number> = {val: 0.0};
     exposure : Ref<number> = {val: 1.0};
 };

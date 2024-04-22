@@ -47,9 +47,9 @@ export default class Scene
 
         // Light 1
         var light1 = new PointLight(glm.vec3.fromValues(1.0, 1.0, 1.0), 1.0);
-        light1.intensity = 1000.0;
+        light1.intensity = 70.0;
         light1.color = glm.vec3.fromValues(0.0, 0.4, 0.2);
-        light1.transforms.Translation = glm.vec3.fromValues(1.0, 11.0, 6.0);
+        light1.transforms.Translation = glm.vec3.fromValues(1.0, 4.0, 1.6);
         light1.transforms.ModelMatrix = glm.mat4.translate(glm.mat4.create(), light1.transforms.ModelMatrix, light1.transforms.Translation);
         this.Push(light1);
 

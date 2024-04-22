@@ -35,7 +35,7 @@ export default class Renderer
         RenderCommand.EnableDepthTest(scene.output.config.DepthTest);
         RenderCommand.ClearColorBufferBit(scene.output.config.ClearColorBit);
         RenderCommand.ClearDepthBufferBit(scene.output.config.ClearDepthBit);
-        RenderCommand.SetClearColor([0.1, 0.1, 0.3, 1.0]);
+        RenderCommand.SetClearColor([0.01, 0.01, 0.01, 1.0]);
 
         scene.Render(ts);
         
