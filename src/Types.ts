@@ -1,10 +1,11 @@
-
+import * as glm from "gl-matrix";
+import Framebuffer from "./Framebuffer";
+import { TextureImageData } from "three/src/textures/types.js";
 
 //----------------------------------------------------------------
 // Global
 //----------------------------------------------------------------
 
-import Framebuffer from "./Framebuffer";
 
 export class Ref <T> 
 {
@@ -40,6 +41,25 @@ export interface GeometryDrawFunction
 {
     type  : GeometryDrawFunctionTypes,
     shape : GeometryDrawFunctionShapes
+};
+
+export interface EnvironmentParams 
+{
+    bottomColor : glm.vec3,
+    topColor : glm.vec3,
+    img : TextureImageData | null
+};
+
+export enum EnvironmentTypes 
+{
+    CUSTOM_SPHERE,
+    SKYBOX
+};
+
+export interface SkyParams 
+{
+    bottomColor : glm.vec3,
+    topColor : glm.vec3
 }
 
 

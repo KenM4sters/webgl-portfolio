@@ -5,7 +5,7 @@ import { CubeGeometry, SphereGeometry } from "./Geometry";
 import { PhysicalMaterial } from "./Material";
 import { Shader } from "./Shader";
 import { Light, PointLight } from "./Light";
-import { DataSizes, FunctionEquationTypes, ImageChannels, ImageConfig, RenderTarget, TextureType } from "./Types";
+import { DataSizes, EnvironmentTypes, FunctionEquationTypes, ImageChannels, ImageConfig, RenderTarget, TextureType } from "./Types";
 import { RenderCommand } from "./RenderCommand";
 import Input from "./Input";
 import PerspectiveCamera, { CameraDirections } from "./Camera/PerspectiveCamera";
@@ -16,11 +16,13 @@ import Environment from "./Environment";
 // Shaders
 import mvpVertSrc from "./Shaders/ModelViewProjection.vert?raw";
 import pbrFragSrc from "./Shaders/PhysicalMaterial.frag?raw";
-// import skyVertSrc from "./Shaders/Sky.vert?raw";
-// import skyFragSrc from "./Shaders/Sky.frag?raw";
+import skyVertSrc from "./Shaders/Sky.vert?raw";
+import skyFragSrc from "./Shaders/Sky.frag?raw";
 import envVertSrc from "./Shaders/Environment.vert?raw";
 import envFragSrc from "./Shaders/Environment.frag?raw";
 import Resources from "./Resources";
+import { TextureImageData } from "three/src/textures/types.js";
+import Sky from "./Sky";
 
 
 export default class Scene
@@ -29,12 +31,13 @@ export default class Scene
 
     public Init(Gui : GUI, w : number, h : number): void 
     {
+        // Shaders
+        const PBR_MVP_Shader = new Shader(mvpVertSrc, pbrFragSrc);
+
         // Camera
         this.camera = new PerspectiveCamera([0.0, 2.0, 10.0], w, h);
 
-        const PBR_MVP_Shader = new Shader(mvpVertSrc, pbrFragSrc);
-        // const skyboxShader = new Shader(skyVertSrc, skyFragSrc);
-        // small sphere
+        // Small sphere
         var plainSphereGeo = new SphereGeometry(2, 100, 100);
         var plainSphereMat = new PhysicalMaterial(PBR_MVP_Shader);
         var plainSphere = new Mesh(plainSphereGeo, plainSphereMat);
@@ -42,18 +45,6 @@ export default class Scene
         plainSphere.transforms.Translation = glm.vec3.fromValues(0.0, 5.0, 0.0);
         plainSphere.transforms.ModelMatrix =  glm.mat4.translate(glm.mat4.create(), plainSphere.transforms.ModelMatrix, plainSphere.transforms.Translation);
         this.Push(plainSphere);
-
-        // skybox 
-        // var skyboxGeo = new SphereGeometry(100, 100, 100);
-        // var skyboxMat = new PhysicalMaterial(skyboxShader);
-        // var skybox = new Mesh(skyboxGeo, skyboxMat);
-        // this.Push(skybox);
-        // let bottomColor : glm.vec3 = glm.vec3.fromValues(0.0, 0.1, 1.0);
-        // let topColor : glm.vec3 = glm.vec3.fromValues(0.0, 0.0, 0.0);
-        // RenderCommand.UseShader(skybox.GetMaterial().GetShader().GetId());
-        // RenderCommand.SetVec3f(skyboxMat.GetShader().GetId(), "bottomColor", bottomColor);
-        // RenderCommand.SetVec3f(skyboxMat.GetShader().GetId(), "topColor", topColor);
-        // RenderCommand.ReleaseShader();
         
         // Floor 
         var floorGeo = new CubeGeometry();
@@ -95,13 +86,36 @@ export default class Scene
 
 
         // Environment Map.
-        const envCube = new CubeGeometry();
-        const cubeMat = new PhysicalMaterial(new Shader(envVertSrc, envFragSrc));
-        const cubeMesh = new Mesh(envCube, cubeMat);
-        const img = Resources.GetTexture("brotherhood");
-        if(!img) throw new Error("Resource | Failed to get texture!");
+        // const envCube = new CubeGeometry();
+        // const cubeMat = new PhysicalMaterial(new Shader(envVertSrc, envFragSrc));
+        // const cubeMesh = new Mesh(envCube, cubeMat);
+        // const envParams = 
+        // {
+        //     bottomColor: bottomColor,
+        //     topColor: topColor,
+        //     img: null
+        // };
+        // this.environment = new Environment(envParams, cubeMesh, w, h, EnvironmentTypes.CUSTOM_SPHERE);
 
-        this.environment = new Environment(img, cubeMesh, w, h);
+        // Sky.
+        const skyGeo = new SphereGeometry(100, 100, 100);
+        const skyMat = new PhysicalMaterial(new Shader(skyVertSrc, skyFragSrc));
+        const sky = new Mesh(skyGeo, skyMat);
+        this.Push(sky);
+
+        const sunLight = new PointLight([1.0, 1.0, 1.0], 10000);
+        sunLight.transforms.Translation = glm.vec3.fromValues(0.0, 5.0, 0.0);
+        sunLight.transforms.ModelMatrix =  glm.mat4.translate(glm.mat4.create(), sunLight.transforms.ModelMatrix, sunLight.transforms.Translation);
+
+        const skyParams = 
+        {
+            bottomColor: glm.vec3.fromValues(0.0, 0.1, 0.2),
+            topColor: glm.vec3.fromValues(0.0, 0.0, 0.2),
+
+        };
+
+        this.sky = new Sky(sky, sunLight, skyParams);
+
  
         // GUI Parameters
         // Cube
@@ -133,7 +147,7 @@ export default class Scene
         CubeFolder.add(plainSphereMat.isUsingTextures, 'val').name("isUsingTextures");
 
 
-        // Floor 
+        // // Floor 
         const FloorFolder = Gui.addFolder('Floor');
         FloorFolder.add(floor.transforms.Translation, '0', -100.0, 100.0, 0.01).name("PosX").onChange(() => {
             floor.transforms.ModelMatrix =  glm.mat4.translate(glm.mat4.create(), floor.transforms.ModelMatrix, floor.transforms.Translation);
@@ -181,28 +195,41 @@ export default class Scene
         LightsFolder.add(light1.color, '2', 0.0, 1.0, 0.01).name("Light1|ColorB");
 
         // Skybox
-        // const skyboxFolder = Gui.addFolder("Skybox");
-        // skyboxFolder.add(bottomColor, '0', 0.0, 20.0, 0.1).name("BottomColor|R");
-        // skyboxFolder.add(bottomColor, '1', 0.0, 20.0, 0.1).name("BottomColor|G");
-        // skyboxFolder.add(bottomColor, '2', 0.0, 20.0, 0.1).name("BottomColor|B");
-        // skyboxFolder.add(topColor, '0', 0.0, 20.0, 0.1).name("topColor|R");
-        // skyboxFolder.add(topColor, '1', 0.0, 20.0, 0.1).name("topColor|G");
-        // skyboxFolder.add(topColor, '2', 0.0, 20.0, 0.1).name("topColor|B");
+        const skyboxFolder = Gui.addFolder("Skybox");
+        skyboxFolder.add(skyParams.bottomColor, '0', 0.0, 20.0, 0.1).name("BottomColor|R");
+        skyboxFolder.add(skyParams.bottomColor, '1', 0.0, 20.0, 0.1).name("BottomColor|G");
+        skyboxFolder.add(skyParams.bottomColor, '2', 0.0, 20.0, 0.1).name("BottomColor|B");
+        skyboxFolder.add(skyParams.topColor, '0', 0.0, 20.0, 0.1).name("topColor|R");
+        skyboxFolder.add(skyParams.topColor, '1', 0.0, 20.0, 0.1).name("topColor|G");
+        skyboxFolder.add(skyParams.topColor, '2', 0.0, 20.0, 0.1).name("topColor|B");
     }
 
     public Render(ts : number): void 
     {
+        // RenderCommand.SetDepthFunc(FunctionEquationTypes.LEQUAL);
+        // RenderCommand.UseShader(this.environment.GetCube().GetMaterial().GetShader().GetId());
+        // RenderCommand.SetMat4f(this.environment.GetCube().GetMaterial().GetShader().GetId(), "projection", this.camera.GetProjectionMatrix());
+        // RenderCommand.SetMat4f(this.environment.GetCube().GetMaterial().GetShader().GetId(), "view", this.camera.GetViewMatrix());
+        // RenderCommand.SetInt(this.environment.GetCube().GetMaterial().GetShader().GetId(), "environmentMap", 0);
+        // RenderCommand.BindTexture(this.environment.GetRawCubeMap().GetId(), TextureType.CubeTex);
+        // RenderCommand.DrawEnvironment(this.environment);
+        // RenderCommand.ReleaseShader();
+        // RenderCommand.UnBindTexture(TextureType.CubeTex);
+
+        const shader = this.sky.GetSphere().GetMaterial().GetShader().GetId();
+        RenderCommand.UseShader(shader);
+        RenderCommand.SetVec3f(shader, "bottomColor", this.sky.GetParams().bottomColor);
+        RenderCommand.SetVec3f(shader, "topColor", this.sky.GetParams().topColor);
+        RenderCommand.SetMat4f(shader, "projection", this.camera.GetProjectionMatrix());
+        RenderCommand.SetMat4f(shader, "view", this.camera.GetViewMatrix());
+        RenderCommand.SetVec3f(shader, "light.Position", this.sky.GetSun().transforms.Translation);
+        RenderCommand.SetVec3f(shader, "light.Color", this.sky.GetSun().color);
+        RenderCommand.SetFloat(shader, "light.Intensity", this.sky.GetSun().intensity);
+        RenderCommand.DrawSky(this.sky);
+        RenderCommand.ReleaseShader();
+
         this.Traverse((child : Mesh) => 
         {
-            RenderCommand.SetDepthFunc(FunctionEquationTypes.LEQUAL);
-            RenderCommand.UseShader(this.environment.GetCube().GetMaterial().GetShader().GetId());
-            RenderCommand.SetMat4f(this.environment.GetCube().GetMaterial().GetShader().GetId(), "projection", this.camera.GetProjectionMatrix());
-            RenderCommand.SetMat4f(this.environment.GetCube().GetMaterial().GetShader().GetId(), "view", this.camera.GetViewMatrix());
-            RenderCommand.SetInt(this.environment.GetCube().GetMaterial().GetShader().GetId(), "environmentMap", 0);
-            RenderCommand.BindTexture(this.environment.GetRawCubeMap().GetId(), TextureType.CubeTex);
-            RenderCommand.DrawEnvironment(this.environment);
-            RenderCommand.ReleaseShader();
-            RenderCommand.UnBindTexture(TextureType.CubeTex);
 
             // May end up adding all objects (lights, materials etc) into this.
             if(child instanceof Mesh) 
@@ -321,6 +348,7 @@ export default class Scene
     public lights : Array<Light> = new Array<Light>();
     public camera !: PerspectiveCamera; 
     public environment !: Environment;
+    public sky !: Sky;
     public output !: RenderTarget;
 
 };

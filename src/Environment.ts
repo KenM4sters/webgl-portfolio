@@ -1,7 +1,7 @@
 import Framebuffer, { FramebufferCubeMap } from "./Framebuffer";
 import { Shader } from "./Shader";
-import { CubeTexture, HDRTexture2D, Texture2D } from "./Texture";
-import { DataSizes, GeometryDrawFunctionTypes, ImageChannels, ImageConfig, TextureType } from "./Types";
+import { CubeTexture, Texture2D } from "./Texture";
+import { DataSizes, EnvironmentParams, EnvironmentTypes, GeometryDrawFunctionTypes, ImageChannels, ImageConfig, TextureType } from "./Types";
 import * as glm from "gl-matrix"
 import { RenderCommand } from "./RenderCommand";
 
@@ -12,15 +12,30 @@ import { Mesh } from "./Mesh";
 
 export default class Environment 
 {
-    constructor(img : HTMLImageElement, cube : Mesh, w: number, h: number) 
+    constructor(params : EnvironmentParams, mesh : Mesh, w: number, h: number, type : EnvironmentTypes) 
     {
 
         // Cube
-        this.cube = cube;
-
-        // Conversion from HDR texture to cube map.
-        const hdrTex = new Texture2D(img);
+        this.mesh = mesh;
+        switch(type) 
+        {
+            case EnvironmentTypes.SKYBOX : this.GenerateCubeSkybox(params, mesh, w, h); break;
+            case EnvironmentTypes.CUSTOM_SPHERE : this.GenerateCustomSphere(params, mesh, w, h); break;
+        }
+    }
+    
+    private GenerateCustomSphere(params : EnvironmentParams, mesh : Mesh, w: number, h: number) : void 
+    {
         
+    }
+
+
+    private GenerateCubeSkybox(params : EnvironmentParams, mesh : Mesh, w: number, h: number) : void 
+    {
+        // Conversion from HDR texture to cube map.
+        if(!params.img) throw new Error("Environment | CubeSkybox needs a valid image!");
+        const hdrTex = new Texture2D(params.img);
+
         const imageConfig : ImageConfig = 
         {
             TargetType: TextureType.CubeTex,
@@ -66,14 +81,14 @@ export default class Environment
             RenderCommand.ClearColorBufferBit(true);
             RenderCommand.ClearDepthBufferBit(true);
 
-            const VAO = this.cube.GetGeometry().vertexArray;
-            const EBO = this.cube.GetGeometry().vertexArray.GetIndexBuffer();
+            const VAO = this.mesh.GetGeometry().vertexArray;
+            const EBO = this.mesh.GetGeometry().vertexArray.GetIndexBuffer();
             
             RenderCommand.BindVertexArray(VAO.GetId());
-            switch(this.cube.GetGeometry().drawFunction.type) 
+            switch(this.mesh.GetGeometry().drawFunction.type) 
             {
-                case GeometryDrawFunctionTypes.DRAW_ARRAYS: RenderCommand.Draw(this.cube.GetGeometry().drawFunction.shape, VAO.GetVertexBuffer().GetVerticesCount()); break;
-                case GeometryDrawFunctionTypes.DRAW_ARRAYS_INDEXED: if(EBO) RenderCommand.DrawIndexed(this.cube.GetGeometry().drawFunction.shape, EBO.GetUniqueSize() / EBO.GetUniqueIndices().BYTES_PER_ELEMENT , EBO.GetUniqueOffset()); break; 
+                case GeometryDrawFunctionTypes.DRAW_ARRAYS: RenderCommand.Draw(this.mesh.GetGeometry().drawFunction.shape, VAO.GetVertexBuffer().GetVerticesCount()); break;
+                case GeometryDrawFunctionTypes.DRAW_ARRAYS_INDEXED: if(EBO) RenderCommand.DrawIndexed(this.mesh.GetGeometry().drawFunction.shape, EBO.GetUniqueSize() / EBO.GetUniqueIndices().BYTES_PER_ELEMENT , EBO.GetUniqueOffset()); break; 
             };
             RenderCommand.UnbindVertexArray();
             
@@ -81,21 +96,17 @@ export default class Environment
         RenderCommand.UnbindFramebuffer();
         RenderCommand.UnBindTexture(TextureType.Tex2D);
         RenderCommand.SetViewportDimensions(w, h);
-
     }
 
-    private GenerateConvolutedMap() : void 
-    {
-        
-    }
+
 
     public GetRawCubeMap() : CubeTexture { return this.rawCubeMap; }
     public GetConvolutedMap() : CubeTexture { return this.convolutedMap; }
-    public GetCube() : Mesh { return this.cube; }
+    public GetCube() : Mesh { return this.mesh; }
     public GetCaptureFramebufffer() : FramebufferCubeMap { return this.captureFBO; }
 
-    private rawCubeMap : CubeTexture;
+    private rawCubeMap !: CubeTexture;
     private convolutedMap !: CubeTexture;
-    private cube : Mesh;
-    private captureFBO : FramebufferCubeMap;
+    private mesh : Mesh;
+    private captureFBO !: FramebufferCubeMap;
 }

@@ -1,0 +1,11 @@
+Model Information:
+* title:	AC Mclaren P1
+* source:	https://sketchfab.com/3d-models/ac-mclaren-p1-b9c90413ba284a3aac142ec0cfa98d0f
+* author:	WARENTERTAINMENT™ (https://sketchfab.com/WarEntertainment)
+
+Model License:
+* license type:	CC-BY-NC-SA-4.0 (http://creativecommons.org/licenses/by-nc-sa/4.0/)
+* requirements:	Author must be credited. No commercial use. Modified versions must have the same license.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "AC Mclaren P1" (https://sketchfab.com/3d-models/ac-mclaren-p1-b9c90413ba284a3aac142ec0cfa98d0f) by WARENTERTAINMENT™ (https://sketchfab.com/WarEntertainment) licensed under CC-BY-NC-SA-4.0 (http://creativecommons.org/licenses/by-nc-sa/4.0/)

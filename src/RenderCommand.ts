@@ -5,6 +5,9 @@ import { Mesh } from "./Mesh.ts";
 import { Geometry } from "./Geometry.ts";
 import { Shader } from "./Shader.ts";
 import Environment from "./Environment.ts";
+import { TextureImageData } from "three/src/textures/types.js";
+import { log } from "three/examples/jsm/nodes/Nodes.js";
+import Sky from "./Sky.ts";
 
 
 export enum BufferType 
@@ -266,7 +269,19 @@ export class RenderCommand
     }  
     public static SetTexture2DImage(data : HTMLImageElement) : void 
     {
+        RenderCommand.gl.texParameteri(RenderCommand.gl.TEXTURE_2D, RenderCommand.gl.TEXTURE_MIN_FILTER, RenderCommand.gl.LINEAR);
+        RenderCommand.gl.texParameteri(RenderCommand.gl.TEXTURE_2D, RenderCommand.gl.TEXTURE_MAG_FILTER, RenderCommand.gl.LINEAR);
+        RenderCommand.gl.texParameteri(RenderCommand.gl.TEXTURE_2D, RenderCommand.gl.TEXTURE_WRAP_S, RenderCommand.gl.CLAMP_TO_EDGE);
+        RenderCommand.gl.texParameteri(RenderCommand.gl.TEXTURE_2D, RenderCommand.gl.TEXTURE_WRAP_T, RenderCommand.gl.CLAMP_TO_EDGE);
         RenderCommand.gl.texImage2D(RenderCommand.gl.TEXTURE_2D, 0, RenderCommand.gl.RGB, RenderCommand.gl.RGB, RenderCommand.gl.UNSIGNED_BYTE, data);
+    }
+    public static SetTexture2DImageHDR(data : TextureImageData) : void 
+    {
+        RenderCommand.gl.texParameteri(RenderCommand.gl.TEXTURE_2D, RenderCommand.gl.TEXTURE_MIN_FILTER, RenderCommand.gl.LINEAR);
+        RenderCommand.gl.texParameteri(RenderCommand.gl.TEXTURE_2D, RenderCommand.gl.TEXTURE_MAG_FILTER, RenderCommand.gl.LINEAR);
+        RenderCommand.gl.texParameteri(RenderCommand.gl.TEXTURE_2D, RenderCommand.gl.TEXTURE_WRAP_S, RenderCommand.gl.CLAMP_TO_EDGE);
+        RenderCommand.gl.texParameteri(RenderCommand.gl.TEXTURE_2D, RenderCommand.gl.TEXTURE_WRAP_T, RenderCommand.gl.CLAMP_TO_EDGE);
+        RenderCommand.gl.texImage2D(RenderCommand.gl.TEXTURE_2D, 0, RenderCommand.gl.RGBA32F, data.width, data.height, 0, RenderCommand.gl.RGBA, RenderCommand.gl.FLOAT, new Float32Array(data.data));
     }
     public static SetTextureCubeMapArray(config : ImageConfig, data : Ref<Float32Array>) : void 
     {
@@ -498,6 +513,28 @@ export class RenderCommand
         {
             case GeometryDrawFunctionTypes.DRAW_ARRAYS: RenderCommand.Draw(env.GetCube().GetGeometry().drawFunction.shape, VAO.GetVertexBuffer().GetVerticesCount()); break;
             case GeometryDrawFunctionTypes.DRAW_ARRAYS_INDEXED: if(EBO) RenderCommand.DrawIndexed(env.GetCube().GetGeometry().drawFunction.shape, EBO.GetUniqueSize() / EBO.GetUniqueIndices().BYTES_PER_ELEMENT , EBO.GetUniqueOffset()); break; 
+        };
+        
+        // Cleanup.
+        RenderCommand.UnbindVertexArray();
+        RenderCommand.UnbindBuffer(BufferType.Index);
+        RenderCommand.ReleaseShader();
+    }
+    public static DrawSky(sky : Sky) : void
+    {
+        var VAO = sky.GetSphere().GetGeometry().vertexArray;
+        var EBO = VAO.GetIndexBuffer();
+        var shader = sky.GetSphere().GetMaterial().GetShader();
+
+        // Bind the vertex array object and shader program.
+        RenderCommand.BindVertexArray(VAO.GetId());
+        RenderCommand.UseShader(shader.GetId());
+
+        // Make the correct draw call.
+        switch(sky.GetSphere().GetGeometry().drawFunction.type) 
+        {
+            case GeometryDrawFunctionTypes.DRAW_ARRAYS: RenderCommand.Draw(sky.GetSphere().GetGeometry().drawFunction.shape, VAO.GetVertexBuffer().GetVerticesCount()); break;
+            case GeometryDrawFunctionTypes.DRAW_ARRAYS_INDEXED: if(EBO) RenderCommand.DrawIndexed(sky.GetSphere().GetGeometry().drawFunction.shape, EBO.GetUniqueSize() / EBO.GetUniqueIndices().BYTES_PER_ELEMENT , EBO.GetUniqueOffset()); break; 
         };
         
         // Cleanup.

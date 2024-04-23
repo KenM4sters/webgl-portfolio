@@ -1,29 +1,27 @@
 import { ImageConfig, Ref, TextureType } from "./Types.ts";
 import { RenderCommand } from "./RenderCommand";
-
-declare class HDRImage{};
+import { TextureImageData } from "three/src/textures/types.js";
 
 // Abstract Texture class to serve as a base for other classes such as the Texture2D and CubeTexture
 // classes.
 abstract class Texture 
 {
-    constructor(config : ImageConfig | HTMLImageElement) 
+    constructor(config : ImageConfig | HTMLImageElement | TextureImageData) 
     {
         this.Id = {val: RenderCommand.CreateTexture()};
-        if(config instanceof HTMLImageElement) 
-        {
-            this.SetImage(config);
-        } else 
+        if('TargetType' in config) 
         {
             this.config = config;
             this.data = {val: new Float32Array(config.Width*config.Height*4)}
             this.Init();
-        }
-        
+        } else 
+        {
+            this.SetImage(config);
+        } 
     }
 
     abstract Init() : void;
-    abstract SetImage(filepath : HTMLImageElement) : void;
+    abstract SetImage(filepath : HTMLImageElement | TextureImageData) : void;
     abstract Resize(w : number, h : number) : void;
     
     // Getters
@@ -45,7 +43,7 @@ abstract class Texture
 // that can be loaded via the LoadImage() method.
 export class Texture2D extends Texture 
 {
-    constructor(config : ImageConfig | HTMLImageElement) 
+    constructor(config : ImageConfig | HTMLImageElement | TextureImageData) 
     {
         super(config);
     }
@@ -57,47 +55,12 @@ export class Texture2D extends Texture
     }
 
     // Loads an Image object from a given filepath and sets the member data variable to the image object.
-    override SetImage(img : HTMLImageElement) : void 
+    override SetImage(img : HTMLImageElement | TextureImageData) : void 
     {
         RenderCommand.BindTexture(this.Id, TextureType.Tex2D, 0);
-        RenderCommand.SetTexture2DImage(img);
+        if(img instanceof HTMLImageElement) RenderCommand.SetTexture2DImage(img);
+        else RenderCommand.SetTexture2DImageHDR(img);
         RenderCommand.UnBindTexture(TextureType.Tex2D, 0);
-    }
-
-    override Resize(w : number, h : number): void {
-        RenderCommand.DeleteTexture2D(this.Id);
-        this.config.Width = w;
-        this.config.Height = h;
-        this.Init();
-    }
-};
-
-
-
-
-export class HDRTexture2D extends Texture 
-{
-    constructor(config : ImageConfig | HTMLImageElement) 
-    {
-        super(config);
-    }
-
-    override Init() : void 
-    {
-        RenderCommand.BindTexture(this.Id, TextureType.Tex2D, 0);
-        RenderCommand.SetTexture2DArray(this.config, this.data as Ref<Float32Array>);
-    }
-
-    // Loads an Image object from a given filepath and sets the member data variable to the image object.
-    override SetImage(filepath : HTMLImageElement) : void 
-    {
-        var HDR = new HDRImage() as any;
-        HDR.src = filepath;
-        console.log(this.Id);
-        HDR.onload = function() {
-            // upload as LDR with current exposure/gamma
-            RenderCommand.BindTexture(this.Id, TextureType.Tex2D, 0); 
-        }
     }
 
     override Resize(w : number, h : number): void {

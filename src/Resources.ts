@@ -1,3 +1,6 @@
+import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
+import { TextureImageData } from 'three/src/textures/types.js';
+
 export default class Resources 
 {
     constructor() 
@@ -6,15 +9,26 @@ export default class Resources
 
     public LoadAllResources(callback: () => void) : void 
     {
+        const loader = new RGBELoader();
         for(const r of sources) 
         {
-            const IMG = new Image();
-            IMG.src = r.path;  
-                     
-            IMG.addEventListener("load", () => {
-                Resources.textures.set(r.name, IMG);
-                this.UpdateStatus(callback);
-            })
+            if(r.type == "LDR") 
+            {
+                const IMG = new Image();
+                IMG.src = r.path;  
+                            
+                IMG.addEventListener("load", () => {
+                    Resources.textures.set(r.name, IMG);
+                    this.UpdateStatus(callback);
+                })
+            } else if(r.type == "HDR") 
+            {   
+                loader.load(r.path, (tex) => 
+                {
+                    Resources.textures.set(r.name, tex.image);
+                    this.UpdateStatus(callback);
+                })
+            }
         }
     }
 
@@ -27,16 +41,17 @@ export default class Resources
         }
     }
 
-    public static GetTexture(name : string) : HTMLImageElement | undefined { return this.textures.get(name); }
+    public static GetTexture(name : string) : HTMLImageElement | TextureImageData | undefined { return this.textures.get(name); }
 
-    private static textures : Map<string, HTMLImageElement> = new Map<string, HTMLImageElement>();
+    private static textures : Map<string, HTMLImageElement | TextureImageData> = new Map<string, HTMLImageElement | TextureImageData>();
     private static status : number = 0;
 }
 
-export const sources : {name: string, path: string}[] = 
+export const sources : {name: string, type: string, path: string}[] = 
 [
     {
-        name: "brotherhood",
-        path: "/Textures/brotherhood.jpg"
+        name: "ocean",
+        type: "HDR",
+        path: "/Textures/ocean.hdr"
     },
 ]
