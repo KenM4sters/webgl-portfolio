@@ -5,19 +5,22 @@ import { CubeGeometry, SphereGeometry } from "./Geometry";
 import { PhysicalMaterial } from "./Material";
 import { Shader } from "./Shader";
 import { Light, PointLight } from "./Light";
-import { DataSizes, ImageChannels, ImageConfig, RenderTarget, TextureType } from "./Types";
+import { DataSizes, FunctionEquationTypes, ImageChannels, ImageConfig, RenderTarget, TextureType } from "./Types";
 import { RenderCommand } from "./RenderCommand";
 import Input from "./Input";
 import PerspectiveCamera, { CameraDirections } from "./Camera/PerspectiveCamera";
 import Framebuffer from "./Framebuffer";
 import { Texture2D } from "./Texture";
+import Environment from "./Environment";
 
 // Shaders
 import mvpVertSrc from "./Shaders/ModelViewProjection.vert?raw";
 import pbrFragSrc from "./Shaders/PhysicalMaterial.frag?raw";
-import skyVertSrc from "./Shaders/Sky.vert?raw";
-import skyFragSrc from "./Shaders/Sky.frag?raw";
-import Environment from "./Environment";
+// import skyVertSrc from "./Shaders/Sky.vert?raw";
+// import skyFragSrc from "./Shaders/Sky.frag?raw";
+import envVertSrc from "./Shaders/Environment.vert?raw";
+import envFragSrc from "./Shaders/Environment.frag?raw";
+import Resources from "./Resources";
 
 
 export default class Scene
@@ -30,7 +33,7 @@ export default class Scene
         this.camera = new PerspectiveCamera([0.0, 2.0, 10.0], w, h);
 
         const PBR_MVP_Shader = new Shader(mvpVertSrc, pbrFragSrc);
-        const skyboxShader = new Shader(skyVertSrc, skyFragSrc);
+        // const skyboxShader = new Shader(skyVertSrc, skyFragSrc);
         // small sphere
         var plainSphereGeo = new SphereGeometry(2, 100, 100);
         var plainSphereMat = new PhysicalMaterial(PBR_MVP_Shader);
@@ -52,7 +55,7 @@ export default class Scene
         // RenderCommand.SetVec3f(skyboxMat.GetShader().GetId(), "topColor", topColor);
         // RenderCommand.ReleaseShader();
         
-        // Mesh 2
+        // Floor 
         var floorGeo = new CubeGeometry();
         var floorMat = new PhysicalMaterial(PBR_MVP_Shader);
         var floor = new Mesh(floorGeo, floorMat); 
@@ -93,10 +96,12 @@ export default class Scene
 
         // Environment Map.
         const envCube = new CubeGeometry();
+        const cubeMat = new PhysicalMaterial(new Shader(envVertSrc, envFragSrc));
+        const cubeMesh = new Mesh(envCube, cubeMat);
+        const img = Resources.GetTexture("brotherhood");
+        if(!img) throw new Error("Resource | Failed to get texture!");
 
-        this.environment = new Environment("/Textures/ocean.hdr", envCube);
-        
-
+        this.environment = new Environment(img, cubeMesh, w, h);
  
         // GUI Parameters
         // Cube
@@ -189,6 +194,16 @@ export default class Scene
     {
         this.Traverse((child : Mesh) => 
         {
+            RenderCommand.SetDepthFunc(FunctionEquationTypes.LEQUAL);
+            RenderCommand.UseShader(this.environment.GetCube().GetMaterial().GetShader().GetId());
+            RenderCommand.SetMat4f(this.environment.GetCube().GetMaterial().GetShader().GetId(), "projection", this.camera.GetProjectionMatrix());
+            RenderCommand.SetMat4f(this.environment.GetCube().GetMaterial().GetShader().GetId(), "view", this.camera.GetViewMatrix());
+            RenderCommand.SetInt(this.environment.GetCube().GetMaterial().GetShader().GetId(), "environmentMap", 0);
+            RenderCommand.BindTexture(this.environment.GetRawCubeMap().GetId(), TextureType.CubeTex);
+            RenderCommand.DrawEnvironment(this.environment);
+            RenderCommand.ReleaseShader();
+            RenderCommand.UnBindTexture(TextureType.CubeTex);
+
             // May end up adding all objects (lights, materials etc) into this.
             if(child instanceof Mesh) 
             {

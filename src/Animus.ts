@@ -14,12 +14,20 @@ import Input from "./Input";
 
 var lastFrame : number = performance.now();
 
+let singleton : boolean = false;
+
 export default class Animus extends App
 {
     constructor(canvas : HTMLCanvasElement) 
     {
         super(canvas);
-        
+        if(singleton)
+            return this;
+        singleton = true;
+    }
+
+    public Init() : void 
+    {
         this.scene = new Scene();
         this.gui = new GUI();
         this.renderer = new Renderer();
@@ -61,8 +69,7 @@ export default class Animus extends App
 
         
         this.scene.Resize(this.windowWidth, this.windowHeight);
-        this.renderer.Resize(this.windowWidth, this.windowHeight);
-        
+        this.renderer.Resize(this.windowWidth, this.windowHeight);   
     }
 
     public GetContext() : WebGL2RenderingContext {return this.context;}
@@ -70,9 +77,9 @@ export default class Animus extends App
     public GetWindowHeight() : number {return this.windowHeight;}
     public GetDevicePixelRatio() : number {return this.devicePixelRatio;}
 
-    private scene : Scene;
-    private gui : GUI;
-    private renderer : Renderer;
-    private input : Input;
+    private scene !: Scene;
+    private gui !: GUI;
+    private renderer !: Renderer;
+    private input !: Input;
 
 }

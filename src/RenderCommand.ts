@@ -4,6 +4,7 @@ import { FunctionEquationTypes, BlendFunctionTypes, ColorAttachments, DataSizes,
 import { Mesh } from "./Mesh.ts";
 import { Geometry } from "./Geometry.ts";
 import { Shader } from "./Shader.ts";
+import Environment from "./Environment.ts";
 
 
 export enum BufferType 
@@ -262,11 +263,10 @@ export class RenderCommand
         RenderCommand.gl.texParameteri(RenderCommand.gl.TEXTURE_2D, RenderCommand.gl.TEXTURE_WRAP_T, RenderCommand.gl.CLAMP_TO_EDGE);
         // Set data.
         RenderCommand.gl.texImage2D(RenderCommand.ConvertTextureTypeToNative(config.TargetType), config.MipMapLevel, RenderCommand.ConvertImageChannelsToNative(config.NChannels), config.Width, config.Height, 0, RenderCommand.ConvertImageChannelsToNative(config.Format), RenderCommand.ConvertDataSizes(config.DataType), data.val);
-        // RenderCommand.gl.texImage2D(RenderCommand.gl.TEXTURE_2D, config.MipMapLevel, RenderCommand.gl.RGBA32F, config.Width, config.Height, 0, RenderCommand.gl.RGBA, RenderCommand.gl.FLOAT, data.val);
     }  
-    public static SetTexture2DImage(config : ImageConfig, data : HTMLImageElement) : void 
+    public static SetTexture2DImage(data : HTMLImageElement) : void 
     {
-        RenderCommand.gl.texImage2D(RenderCommand.ConvertTextureTypeToNative(config.TargetType), config.MipMapLevel, RenderCommand.ConvertImageChannelsToNative(config.NChannels), RenderCommand.ConvertImageChannelsToNative(config.Format), RenderCommand.ConvertDataSizes(config.DataType), data);
+        RenderCommand.gl.texImage2D(RenderCommand.gl.TEXTURE_2D, 0, RenderCommand.gl.RGB, RenderCommand.gl.RGB, RenderCommand.gl.UNSIGNED_BYTE, data);
     }
     public static SetTextureCubeMapArray(config : ImageConfig, data : Ref<Float32Array>) : void 
     {
@@ -280,7 +280,6 @@ export class RenderCommand
         // Set data.
         for(let i = 0; i < 6; i++)
             RenderCommand.gl.texImage2D(RenderCommand.gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, config.MipMapLevel, RenderCommand.ConvertImageChannelsToNative(config.NChannels), config.Width, config.Height, 0, RenderCommand.ConvertImageChannelsToNative(config.Format), RenderCommand.ConvertDataSizes(config.DataType), data.val);
-        // RenderCommand.gl.texImage2D(RenderCommand.gl.TEXTURE_2D, config.MipMapLevel, RenderCommand.gl.RGBA32F, config.Width, config.Height, 0, RenderCommand.gl.RGBA, RenderCommand.gl.FLOAT, data.val);
     }  
     public static SetTextureCubeMapImage(config : ImageConfig, data : HTMLImageElement) : void 
     {
@@ -483,6 +482,30 @@ export class RenderCommand
         RenderCommand.UnbindBuffer(BufferType.Index);
         RenderCommand.ReleaseShader();
     }
+
+    public static DrawEnvironment(env : Environment) : void
+    {
+        var VAO = env.GetCube().GetGeometry().vertexArray;
+        var EBO = VAO.GetIndexBuffer();
+        var shader = env.GetCube().GetMaterial().GetShader();
+
+        // Bind the vertex array object and shader program.
+        RenderCommand.BindVertexArray(VAO.GetId());
+        RenderCommand.UseShader(shader.GetId());
+
+        // Make the correct draw call.
+        switch(env.GetCube().GetGeometry().drawFunction.type) 
+        {
+            case GeometryDrawFunctionTypes.DRAW_ARRAYS: RenderCommand.Draw(env.GetCube().GetGeometry().drawFunction.shape, VAO.GetVertexBuffer().GetVerticesCount()); break;
+            case GeometryDrawFunctionTypes.DRAW_ARRAYS_INDEXED: if(EBO) RenderCommand.DrawIndexed(env.GetCube().GetGeometry().drawFunction.shape, EBO.GetUniqueSize() / EBO.GetUniqueIndices().BYTES_PER_ELEMENT , EBO.GetUniqueOffset()); break; 
+        };
+        
+        // Cleanup.
+        RenderCommand.UnbindVertexArray();
+        RenderCommand.UnbindBuffer(BufferType.Index);
+        RenderCommand.ReleaseShader();
+    }
+
 
     //----------------------------------------------------------------
     // Convertion Functions.

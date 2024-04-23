@@ -4,7 +4,7 @@ precision highp float;
 out vec4 FragColor;
 in vec3 vLocalPos;
 
-uniform sampler2D EqMap;
+uniform sampler2D hdrTex;
 
 const vec2 invAtan = vec2(0.1591, 0.3183);
 vec2 SampleSphericalMap(vec3 v)
@@ -18,7 +18,7 @@ vec2 SampleSphericalMap(vec3 v)
 void main() 
 {
     vec2 uv = SampleSphericalMap(normalize(vLocalPos)); // make sure to normalize localPos
-    vec3 color = texture(EqMap, uv).rgb;
+    vec3 color = texture(hdrTex, uv).rgb;
     
     FragColor = vec4(color, 1.0);
 }
