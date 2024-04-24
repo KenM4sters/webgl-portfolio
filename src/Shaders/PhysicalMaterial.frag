@@ -115,32 +115,29 @@ void main() {
 	           
     // reflectance equation
     vec3 Lo = vec3(0.0);
-    for(int i = 0; i < 4; ++i) 
-    {
-        // calculate per-light radiance
-        vec3 L = normalize(light1.Position - model_pos);
-        vec3 H = normalize(V + L);
-        float D = length(light1.Position - model_pos);
-        float attenuation = 1.0 / (D * D);
-        vec3 radiance = light1.Color * attenuation * light1.Intensity;        
+    // calculate per-light radiance
+    vec3 L = normalize(light1.Position - model_pos);
+    vec3 H = normalize(V + L);
+    float D = length(light1.Position - model_pos);
+    float attenuation = 1.0 / (D * D);
+    vec3 radiance = light1.Color * attenuation * light1.Intensity;        
+    
+    // cook-torrance brdf
+    float NDF = DistributionGGX(N, H, roughnessMat);        
+    float G   = GeometrySmith(N, V, L, roughnessMat);      
+    vec3 F    = FresnelSchlick(max(dot(H, V), 0.0), F0);       
+    
+    vec3 kS = F;
+    vec3 kD = vec3(1.0) - kS;
+    kD *= 1.0 - metallicMat;	  
+    
+    vec3 numerator    = NDF * G * F;
+    float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001;
+    vec3 specular     = numerator / denominator;  
         
-        // cook-torrance brdf
-        float NDF = DistributionGGX(N, H, roughnessMat);        
-        float G   = GeometrySmith(N, V, L, roughnessMat);      
-        vec3 F    = FresnelSchlick(max(dot(H, V), 0.0), F0);       
-        
-        vec3 kS = F;
-        vec3 kD = vec3(1.0) - kS;
-        kD *= 1.0 - metallicMat;	  
-        
-        vec3 numerator    = NDF * G * F;
-        float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001;
-        vec3 specular     = numerator / denominator;  
-            
-        // add to outgoing radiance Lo
-        float NdotL = max(dot(N, L), 0.0);                
-        Lo += (kD * albedoMat / PI + specular) * radiance * NdotL; 
-    }   
+    // add to outgoing radiance Lo
+    float NdotL = max(dot(N, L), 0.0);                
+    Lo += (kD * albedoMat / PI + specular) * radiance * NdotL; 
   
     vec3 ambient = vec3(0.03) * albedoMat * aoMat;
     vec3 color = ambient + Lo + emissionMat; 

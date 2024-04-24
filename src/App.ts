@@ -15,6 +15,8 @@ export default abstract class App
 
         var ext = this.context.getExtension('EXT_color_buffer_float');
         if (!ext) throw new Error('EXT_color_buffer_float is not supported');
+        var ext = this.context.getExtension('OES_texture_float_linear');
+        if (!ext) throw new Error('OES_texture_float_linear is not supported');
     
         // *IMOPRTANT* this method must be called before any other rendering commands are made.
         RenderCommand.SubmitContext(this.context); 

@@ -6,6 +6,13 @@ struct Camera
     vec3 Position;
 };
 
+struct Light 
+{
+    vec3 Position;
+    vec3 Color;
+    float Intensity;
+};
+
 struct RawMaterial 
 {
     vec3 Albedo;
@@ -14,12 +21,12 @@ struct RawMaterial
     float AO;
     float Emission;
 };
-
-struct Light 
+struct Material 
 {
-    vec3 Position;
-    vec3 Color;
-    float Intensity;
+    sampler2D Albedo;
+    sampler2D Metallic;
+    sampler2D Roughness;
+    sampler2D AO;
 };
 
 out vec4 FragColor;
@@ -28,11 +35,10 @@ in vec3 model_pos;
 in vec3 vNormal;
 in vec2 vUV;
 
-uniform vec3 bottomColor;
-uniform vec3 topColor;
-uniform Light sunLight;
 uniform Camera camera;
-uniform RawMaterial rawMaterial;
+uniform Material material;
+uniform RawMaterial rawMaterial; 
+uniform Light sunLight;
 
 const float PI = 3.14159265359;
 // ----------------------------------------------------------------------------
@@ -90,6 +96,7 @@ void main() {
     roughnessMat = rawMaterial.Roughness;
     aoMat = rawMaterial.AO;
     emissionMat = rawMaterial.Emission;
+
 
     vec3 N = normalize(vNormal);
     vec3 V = normalize(camera.Position - model_pos);

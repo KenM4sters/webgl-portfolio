@@ -1,11 +1,11 @@
 import GUI from "lil-gui";
 import * as glm from "gl-matrix"
 import { Mesh } from "./Mesh";
-import { CubeGeometry, SphereGeometry } from "./Geometry";
+import { CubeGeometry, PlaneGeometry, SphereGeometry } from "./Geometry";
 import { PhysicalMaterial } from "./Material";
 import { Shader } from "./Shader";
 import { Light, PointLight } from "./Light";
-import { DataSizes, EnvironmentTypes, FunctionEquationTypes, ImageChannels, ImageConfig, RenderTarget, TextureType } from "./Types";
+import { DataSizes, EnvironmentTypes, FunctionEquationTypes, ImageChannels, ImageConfig, RenderTarget, SkyParams, TextureType, WaterParams } from "./Types";
 import { RenderCommand } from "./RenderCommand";
 import Input from "./Input";
 import PerspectiveCamera, { CameraDirections } from "./Camera/PerspectiveCamera";
@@ -23,6 +23,7 @@ import envFragSrc from "./Shaders/Environment.frag?raw";
 import Resources from "./Resources";
 import { TextureImageData } from "three/src/textures/types.js";
 import Sky from "./Sky";
+import Water from "./Water";
 
 
 export default class Scene
@@ -31,36 +32,6 @@ export default class Scene
 
     public Init(Gui : GUI, w : number, h : number): void 
     {
-        // Shaders
-        const PBR_MVP_Shader = new Shader(mvpVertSrc, pbrFragSrc);
-
-        // Camera
-        this.camera = new PerspectiveCamera([0.0, 2.0, 10.0], w, h);
-
-        // Small sphere
-        var plainSphereGeo = new SphereGeometry(2, 100, 100);
-        var plainSphereMat = new PhysicalMaterial(PBR_MVP_Shader);
-        var plainSphere = new Mesh(plainSphereGeo, plainSphereMat);
-        plainSphere.transforms.Scale = glm.vec3.fromValues(0.4, 0.4, 0.4);
-        plainSphere.transforms.Translation = glm.vec3.fromValues(0.0, 5.0, 0.0);
-        plainSphere.transforms.ModelMatrix =  glm.mat4.translate(glm.mat4.create(), plainSphere.transforms.ModelMatrix, plainSphere.transforms.Translation);
-        this.Push(plainSphere);
-        
-        // Floor 
-        var floorGeo = new CubeGeometry();
-        var floorMat = new PhysicalMaterial(PBR_MVP_Shader);
-        var floor = new Mesh(floorGeo, floorMat); 
-        floor.transforms.Scale = glm.vec3.fromValues(100.0, 0.1, 100.0);
-        floor.transforms.Translation = glm.vec3.fromValues(0.0, -0.6, 0.0);
-        floor.transforms.ModelMatrix =  glm.mat4.translate(glm.mat4.create(), floor.transforms.ModelMatrix, floor.transforms.Translation);
-        this.Push(floor);
-
-        // Light 1
-        var light1 = new PointLight(glm.vec3.fromValues(0.0, 0.4, 0.4), 20.0);
-        light1.transforms.Translation = glm.vec3.fromValues(6.0, 4.0, 4.0);
-        light1.transforms.ModelMatrix = glm.mat4.translate(glm.mat4.create(), light1.transforms.ModelMatrix, light1.transforms.Translation);
-        this.Push(light1);
-
         // Since we'll be rendering our scene to an off-screen render buffer, and storing the results
         // in a texture to be used for the "SreenQuad" render layer, we need to define this.renderTarget
         // as our own custom framebuffer.
@@ -84,6 +55,26 @@ export default class Scene
             }
         };
 
+        // Shaders
+        const PBR_MVP_Shader = new Shader(mvpVertSrc, pbrFragSrc);
+
+        // Camera
+        this.camera = new PerspectiveCamera([0.0, 2.0, 10.0], w, h);
+
+        // Small sphere
+        // var plainSphereGeo = new SphereGeometry(2, 100, 100);
+        // var plainSphereMat = new PhysicalMaterial(PBR_MVP_Shader);
+        // var plainSphere = new Mesh(plainSphereGeo, plainSphereMat);
+        // plainSphere.transforms.Scale = glm.vec3.fromValues(0.4, 0.4, 0.4);
+        // plainSphere.transforms.Translation = glm.vec3.fromValues(0.0, 5.0, 0.0);
+        // this.Push(plainSphere);
+    
+        // // Light 1
+        // var light1 = new PointLight(glm.vec3.fromValues(0.0, 0.4, 0.4), 20.0);
+        // light1.transforms.Translation = glm.vec3.fromValues(6.0, 4.0, 4.0);
+        // light1.transforms.ModelMatrix = glm.mat4.translate(glm.mat4.create(), light1.transforms.ModelMatrix, light1.transforms.Translation);
+        // this.Push(light1);
+
 
         // Environment Map.
         // const envCube = new CubeGeometry();
@@ -97,140 +88,126 @@ export default class Scene
         // };
         // this.environment = new Environment(envParams, cubeMesh, w, h, EnvironmentTypes.CUSTOM_SPHERE);
 
-        // Sky.
-        const skyGeo = new SphereGeometry(100, 100, 100);
-        const skyMat = new PhysicalMaterial(new Shader(skyVertSrc, skyFragSrc));
-        const sky = new Mesh(skyGeo, skyMat);
-        this.Push(sky);
+        // Water.
+        // Floor 
+        var waterGeo = new PlaneGeometry(100, 100, 100, 100);
 
-        const sunLight = new PointLight([1.0, 1.0, 1.0], 10000);
-        sunLight.transforms.Translation = glm.vec3.fromValues(0.0, 5.0, 0.0);
-        sunLight.transforms.ModelMatrix =  glm.mat4.translate(glm.mat4.create(), sunLight.transforms.ModelMatrix, sunLight.transforms.Translation);
-
-        const skyParams = 
+        const waterParams : WaterParams = 
         {
-            bottomColor: glm.vec3.fromValues(0.0, 0.1, 0.2),
-            topColor: glm.vec3.fromValues(0.0, 0.0, 0.2),
 
         };
 
+        this.water = new Water(waterGeo, this.camera, waterParams, w, h);
+
+
+
+        // Sky.
+        const skyGeo = new SphereGeometry(100, 100, 100);
+        const skyMat = new PhysicalMaterial(new Shader(skyVertSrc, skyFragSrc));
+        skyMat.Albedo.val = [0.0, 0.1, 1.0];
+        const sky = new Mesh(skyGeo, skyMat);
+        const sunLight = new PointLight([0.4, 1.0, 1.0], 10000);
+        sunLight.transforms.Translation = glm.vec3.fromValues(0.0, 18.0, -150.0);
+        this.lights.push(sunLight);
+
+        const skyParams : SkyParams = 
+        {
+            bottomColor: glm.vec3.fromValues(0.0, 0.1, 0.2),
+            topColor: glm.vec3.fromValues(0.0, 0.0, 0.2),
+            Albedo: skyMat.Albedo.val as glm.vec3,
+            Roughness: skyMat.Roughness.val as number,
+            Metallic: skyMat.Metallic.val as number,
+            AO: skyMat.AO.val as number
+        };
+
         this.sky = new Sky(sky, sunLight, skyParams);
+        // this.Push(sky); 
 
  
         // GUI Parameters
         // Cube
-        const CubeFolder = Gui.addFolder('Cube');
-        CubeFolder.add(plainSphere.transforms.Translation, '0', -100.0, 100.0, 0.01).name("PosX").onChange(() => {
-            plainSphere.transforms.ModelMatrix =  glm.mat4.translate(glm.mat4.create(), plainSphere.transforms.ModelMatrix, plainSphere.transforms.Translation);
+        // const CubeFolder = Gui.addFolder('Cube');
+        // CubeFolder.add(plainSphere.transforms.Translation, '0', -100.0, 100.0, 0.01).name("PosX").onChange(() => {
+        //     plainSphere.transforms.ModelMatrix =  glm.mat4.translate(glm.mat4.create(), plainSphere.transforms.ModelMatrix, plainSphere.transforms.Translation);
+        // })
+        // CubeFolder.add(plainSphere.transforms.Translation, '1', -100.0, 100.0, 0.01).name("PosY").onChange(() => {
+        //     plainSphere.transforms.ModelMatrix =  glm.mat4.translate(glm.mat4.create(), plainSphere.transforms.ModelMatrix, plainSphere.transforms.Translation);
+        // })
+        // CubeFolder.add(plainSphere.transforms.Translation, '2', -100.0, 100.0, 0.01).name("PosZ").onChange(() => {
+        //     plainSphere.transforms.ModelMatrix =  glm.mat4.translate(glm.mat4.create(), plainSphere.transforms.ModelMatrix, plainSphere.transforms.Translation);
+        // })
+        // CubeFolder.add(plainSphere.transforms.Scale, '0', -100.0, 100.0, 0.01).name("ScaleX").onChange(() => {
+        //     plainSphere.transforms.ModelMatrix =  glm.mat4.scale(glm.mat4.create(), plainSphere.transforms.ModelMatrix, plainSphere.transforms.Scale);
+        // })
+        // CubeFolder.add(plainSphere.transforms.Scale, '1', -100.0, 100.0, 0.01).name("ScaleY").onChange(() => {
+        //     plainSphere.transforms.ModelMatrix =  glm.mat4.scale(glm.mat4.create(), plainSphere.transforms.ModelMatrix, plainSphere.transforms.Scale);
+        // })
+        // CubeFolder.add(plainSphere.transforms.Scale, '2', -100.0, 100.0, 0.01).name("ScaleZ").onChange(() => {
+        //     plainSphere.transforms.ModelMatrix =  glm.mat4.scale(glm.mat4.create(), plainSphere.transforms.ModelMatrix, plainSphere.transforms.Scale);
+        // })
+        // if(plainSphereMat instanceof PhysicalMaterial) 
+        // {
+        //     CubeFolder.add(plainSphereMat.Metallic, 'val',  0.0, 1.0, 0.01).name("Metallic");
+        //     CubeFolder.add(plainSphereMat.Roughness, 'val',  0.0, 1.0, 0.01).name("Roughness");
+        // }
+        // CubeFolder.add(plainSphereMat.emission, 'val',  0.0, 1.0, 0.01).name("Emission");
+        // CubeFolder.add(plainSphereMat.isUsingTextures, 'val').name("isUsingTextures");
+
+
+        // Floor 
+        const WaterFolder = Gui.addFolder('Water');
+        WaterFolder.add(this.water.GetMesh().transforms.Translation, '0', -100.0, 100.0, 0.01).name("PosX").onChange(() => {
+            this.water.GetMesh().transforms.ModelMatrix =  glm.mat4.translate(glm.mat4.create(), this.water.GetMesh().transforms.ModelMatrix, this.water.GetMesh().transforms.Translation);
         })
-        CubeFolder.add(plainSphere.transforms.Translation, '1', -100.0, 100.0, 0.01).name("PosY").onChange(() => {
-            plainSphere.transforms.ModelMatrix =  glm.mat4.translate(glm.mat4.create(), plainSphere.transforms.ModelMatrix, plainSphere.transforms.Translation);
+        WaterFolder.add(this.water.GetMesh().transforms.Translation, '1', -100.0, 100.0, 0.01).name("PosY").onChange(() => {
+            this.water.GetMesh().transforms.ModelMatrix =  glm.mat4.translate(glm.mat4.create(), this.water.GetMesh().transforms.ModelMatrix, this.water.GetMesh().transforms.Translation);
         })
-        CubeFolder.add(plainSphere.transforms.Translation, '2', -100.0, 100.0, 0.01).name("PosZ").onChange(() => {
-            plainSphere.transforms.ModelMatrix =  glm.mat4.translate(glm.mat4.create(), plainSphere.transforms.ModelMatrix, plainSphere.transforms.Translation);
+        WaterFolder.add(this.water.GetMesh().transforms.Translation, '2', -100.0, 100.0, 0.01).name("PosZ").onChange(() => {
+            this.water.GetMesh().transforms.ModelMatrix =  glm.mat4.translate(glm.mat4.create(), this.water.GetMesh().transforms.ModelMatrix, this.water.GetMesh().transforms.Translation);
         })
-        CubeFolder.add(plainSphere.transforms.Scale, '0', -100.0, 100.0, 0.01).name("ScaleX").onChange(() => {
-            plainSphere.transforms.ModelMatrix =  glm.mat4.scale(glm.mat4.create(), plainSphere.transforms.ModelMatrix, plainSphere.transforms.Scale);
+        WaterFolder.add(this.water.GetMesh().transforms.Scale, '0', -100.0, 100.0, 0.01).name("ScaleX").onChange(() => {
+            this.water.GetMesh().transforms.ModelMatrix =  glm.mat4.scale(glm.mat4.create(), this.water.GetMesh().transforms.ModelMatrix, this.water.GetMesh().transforms.Scale);
         })
-        CubeFolder.add(plainSphere.transforms.Scale, '1', -100.0, 100.0, 0.01).name("ScaleY").onChange(() => {
-            plainSphere.transforms.ModelMatrix =  glm.mat4.scale(glm.mat4.create(), plainSphere.transforms.ModelMatrix, plainSphere.transforms.Scale);
+        WaterFolder.add(this.water.GetMesh().transforms.Scale, '1', -100.0, 100.0, 0.01).name("ScaleY").onChange(() => {
+            this.water.GetMesh().transforms.ModelMatrix =  glm.mat4.scale(glm.mat4.create(), this.water.GetMesh().transforms.ModelMatrix, this.water.GetMesh().transforms.Scale);
         })
-        CubeFolder.add(plainSphere.transforms.Scale, '2', -100.0, 100.0, 0.01).name("ScaleZ").onChange(() => {
-            plainSphere.transforms.ModelMatrix =  glm.mat4.scale(glm.mat4.create(), plainSphere.transforms.ModelMatrix, plainSphere.transforms.Scale);
+        WaterFolder.add(this.water.GetMesh().transforms.Scale, '2', -100.0, 100.0, 0.01).name("ScaleZ").onChange(() => {
+            this.water.GetMesh().transforms.ModelMatrix =  glm.mat4.scale(glm.mat4.create(), this.water.GetMesh().transforms.ModelMatrix, this.water.GetMesh().transforms.Scale);
         })
-        if(plainSphereMat instanceof PhysicalMaterial) 
+
+        var waterMaterial = this.water.GetMesh().GetMaterial();
+        if(waterMaterial instanceof PhysicalMaterial) 
         {
-            CubeFolder.add(plainSphereMat.Metallic, 'val',  0.0, 1.0, 0.01).name("Metallic");
-            CubeFolder.add(plainSphereMat.Roughness, 'val',  0.0, 1.0, 0.01).name("Roughness");
+            WaterFolder.add(waterMaterial.Metallic, 'val',  0.0, 1.0, 0.01).name("Metallic");
+            WaterFolder.add(waterMaterial.Roughness, 'val',  0.0, 1.0, 0.01).name("Roughness");
         }
-        CubeFolder.add(plainSphereMat.emission, 'val',  0.0, 1.0, 0.01).name("Emission");
-        CubeFolder.add(plainSphereMat.isUsingTextures, 'val').name("isUsingTextures");
-
-
-        // // Floor 
-        const FloorFolder = Gui.addFolder('Floor');
-        FloorFolder.add(floor.transforms.Translation, '0', -100.0, 100.0, 0.01).name("PosX").onChange(() => {
-            floor.transforms.ModelMatrix =  glm.mat4.translate(glm.mat4.create(), floor.transforms.ModelMatrix, floor.transforms.Translation);
-        })
-        FloorFolder.add(floor.transforms.Translation, '1', -100.0, 100.0, 0.01).name("PosY").onChange(() => {
-            floor.transforms.ModelMatrix =  glm.mat4.translate(glm.mat4.create(), floor.transforms.ModelMatrix, floor.transforms.Translation);
-        })
-        FloorFolder.add(floor.transforms.Translation, '2', -100.0, 100.0, 0.01).name("PosZ").onChange(() => {
-            floor.transforms.ModelMatrix =  glm.mat4.translate(glm.mat4.create(), floor.transforms.ModelMatrix, floor.transforms.Translation);
-        })
-        FloorFolder.add(floor.transforms.Scale, '0', -100.0, 100.0, 0.01).name("ScaleX").onChange(() => {
-            floor.transforms.ModelMatrix =  glm.mat4.scale(glm.mat4.create(), floor.transforms.ModelMatrix, floor.transforms.Scale);
-        })
-        FloorFolder.add(floor.transforms.Scale, '1', -100.0, 100.0, 0.01).name("ScaleY").onChange(() => {
-            floor.transforms.ModelMatrix =  glm.mat4.scale(glm.mat4.create(), floor.transforms.ModelMatrix, floor.transforms.Scale);
-        })
-        FloorFolder.add(floor.transforms.Scale, '2', -100.0, 100.0, 0.01).name("ScaleZ").onChange(() => {
-            floor.transforms.ModelMatrix =  glm.mat4.scale(glm.mat4.create(), floor.transforms.ModelMatrix, floor.transforms.Scale);
-        })
-
-        if(floorMat instanceof PhysicalMaterial) 
-        {
-            FloorFolder.add(floorMat.Metallic, 'val',  0.0, 1.0, 0.01).name("Metallic");
-            FloorFolder.add(floorMat.Roughness, 'val',  0.0, 1.0, 0.01).name("Roughness");
-        }
-        FloorFolder.add(floorMat.emission, 'val',  0.0, 1.0, 0.01).name("Emission");
-        FloorFolder.add(floorMat.isUsingTextures, 'val').name("isUsingTextures");
+        WaterFolder.add(waterMaterial.emission, 'val',  0.0, 1.0, 0.01).name("Emission");
+        WaterFolder.add(waterMaterial.isUsingTextures, 'val').name("isUsingTextures");
         
         // Lights
 
         const LightsFolder = Gui.addFolder("Lights");
 
-        LightsFolder.add(light1.transforms.Translation, '0', -100.0, 100.0, 0.01).name("Light1|PosX").onChange(() => {
-            light1.transforms.ModelMatrix = glm.mat4.translate(glm.mat4.create(), light1.transforms.ModelMatrix, light1.transforms.Translation);
+        LightsFolder.add(sunLight.transforms.Translation, '0', -200.0, 200.0, 1).name("sunLight|PosX").onChange(() => {
+            sunLight.transforms.ModelMatrix = glm.mat4.translate(glm.mat4.create(), sunLight.transforms.ModelMatrix, sunLight.transforms.Translation);
         })
-        LightsFolder.add(light1.transforms.Translation, '1', -100.0, 100.0, 0.01).name("Light1|PosY").onChange(() => {
-            light1.transforms.ModelMatrix = glm.mat4.translate(glm.mat4.create(), light1.transforms.ModelMatrix, light1.transforms.Translation);
+        LightsFolder.add(sunLight.transforms.Translation, '1', -200.0, 200.0, 1).name("sunLight|PosY").onChange(() => {
+            sunLight.transforms.ModelMatrix = glm.mat4.translate(glm.mat4.create(), sunLight.transforms.ModelMatrix, sunLight.transforms.Translation);
         })
-        LightsFolder.add(light1.transforms.Translation, '2', -100.0, 100.0, 0.01).name("Light1|PosZ").onChange(() => {
-            light1.transforms.ModelMatrix = glm.mat4.translate(glm.mat4.create(), light1.transforms.ModelMatrix, light1.transforms.Translation);
+        LightsFolder.add(sunLight.transforms.Translation, '2', -200.0, 200.0, 1).name("sunLight|PosZ").onChange(() => {
+            sunLight.transforms.ModelMatrix = glm.mat4.translate(glm.mat4.create(), sunLight.transforms.ModelMatrix, sunLight.transforms.Translation);
         })
-        LightsFolder.add(light1, 'intensity', 0.0, 1000.0, 10.0).name("Light1|Intensity");
-        LightsFolder.add(light1.color, '0', 0.0, 1.0, 0.01).name("Light1|ColorR");
-        LightsFolder.add(light1.color, '1', 0.0, 1.0, 0.01).name("Light1|ColorG");
-        LightsFolder.add(light1.color, '2', 0.0, 1.0, 0.01).name("Light1|ColorB");
-
-        // Skybox
-        const skyboxFolder = Gui.addFolder("Skybox");
-        skyboxFolder.add(skyParams.bottomColor, '0', 0.0, 20.0, 0.1).name("BottomColor|R");
-        skyboxFolder.add(skyParams.bottomColor, '1', 0.0, 20.0, 0.1).name("BottomColor|G");
-        skyboxFolder.add(skyParams.bottomColor, '2', 0.0, 20.0, 0.1).name("BottomColor|B");
-        skyboxFolder.add(skyParams.topColor, '0', 0.0, 20.0, 0.1).name("topColor|R");
-        skyboxFolder.add(skyParams.topColor, '1', 0.0, 20.0, 0.1).name("topColor|G");
-        skyboxFolder.add(skyParams.topColor, '2', 0.0, 20.0, 0.1).name("topColor|B");
+        LightsFolder.add(sunLight, 'intensity', 0.0, 10000.0, 50.0).name("sunLight|Intensity");
+        LightsFolder.add(sunLight.color, '0', 0.0, 1.0, 0.1).name("sunLight|ColorR");
+        LightsFolder.add(sunLight.color, '1', 0.0, 1.0, 0.1).name("sunLight|ColorG");
+        LightsFolder.add(sunLight.color, '2', 0.0, 1.0, 0.1).name("sunLight|ColorB");
     }
 
     public Render(ts : number): void 
     {
-        // RenderCommand.SetDepthFunc(FunctionEquationTypes.LEQUAL);
-        // RenderCommand.UseShader(this.environment.GetCube().GetMaterial().GetShader().GetId());
-        // RenderCommand.SetMat4f(this.environment.GetCube().GetMaterial().GetShader().GetId(), "projection", this.camera.GetProjectionMatrix());
-        // RenderCommand.SetMat4f(this.environment.GetCube().GetMaterial().GetShader().GetId(), "view", this.camera.GetViewMatrix());
-        // RenderCommand.SetInt(this.environment.GetCube().GetMaterial().GetShader().GetId(), "environmentMap", 0);
-        // RenderCommand.BindTexture(this.environment.GetRawCubeMap().GetId(), TextureType.CubeTex);
-        // RenderCommand.DrawEnvironment(this.environment);
-        // RenderCommand.ReleaseShader();
-        // RenderCommand.UnBindTexture(TextureType.CubeTex);
-
-        const shader = this.sky.GetSphere().GetMaterial().GetShader().GetId();
-        RenderCommand.UseShader(shader);
-        RenderCommand.SetVec3f(shader, "bottomColor", this.sky.GetParams().bottomColor);
-        RenderCommand.SetVec3f(shader, "topColor", this.sky.GetParams().topColor);
-        RenderCommand.SetMat4f(shader, "projection", this.camera.GetProjectionMatrix());
-        RenderCommand.SetMat4f(shader, "view", this.camera.GetViewMatrix());
-        RenderCommand.SetVec3f(shader, "light.Position", this.sky.GetSun().transforms.Translation);
-        RenderCommand.SetVec3f(shader, "light.Color", this.sky.GetSun().color);
-        RenderCommand.SetFloat(shader, "light.Intensity", this.sky.GetSun().intensity);
-        RenderCommand.DrawSky(this.sky);
-        RenderCommand.ReleaseShader();
-
+        // Scene Objects
         this.Traverse((child : Mesh) => 
         {
-
             // May end up adding all objects (lights, materials etc) into this.
             if(child instanceof Mesh) 
             {
@@ -290,7 +267,57 @@ export default class Scene
                 RenderCommand.UnBindTexture(TextureType.Tex2D, 2);
                 RenderCommand.UnBindTexture(TextureType.Tex2D, 3);
             } 
-        })
+        });
+        // Sky
+        const sky = this.sky.GetSphere();
+        const mat = sky.GetMaterial();
+        sky.transforms.ModelMatrix = glm.mat4.create();
+        sky.transforms.ModelMatrix =  glm.mat4.scale(glm.mat4.create(), sky.transforms.ModelMatrix, sky.transforms.Scale);
+        sky.transforms.ModelMatrix =  glm.mat4.translate(glm.mat4.create(), sky.transforms.ModelMatrix, sky.transforms.Translation);
+        RenderCommand.UseShader(mat.GetShader().GetId());
+        RenderCommand.SetVec3f(mat.GetShader().GetId(), "bottomColor", this.sky.GetParams().bottomColor);
+        RenderCommand.SetVec3f(mat.GetShader().GetId(), "topColor", this.sky.GetParams().topColor);
+        RenderCommand.SetMat4f(mat.GetShader().GetId(), "model", sky.transforms.ModelMatrix);
+        RenderCommand.SetMat4f(mat.GetShader().GetId(), "projection", this.camera.GetProjectionMatrix());
+        RenderCommand.SetMat4f(mat.GetShader().GetId(), "view", this.camera.GetViewMatrix());
+        RenderCommand.SetVec3f(mat.GetShader().GetId(), "sunLight.Position", this.sky.GetSun().transforms.Translation);
+        RenderCommand.SetVec3f(mat.GetShader().GetId(), "sunLight.Color", this.sky.GetSun().color);
+        RenderCommand.SetFloat(mat.GetShader().GetId(), "sunLight.Intensity", this.sky.GetSun().intensity);
+        RenderCommand.SetVec3f(mat.GetShader().GetId(), "camera.Position", this.camera.position);
+        if(mat instanceof PhysicalMaterial) 
+        {
+            RenderCommand.SetVec3f(mat.GetShader().GetId(), "rawMaterial.Albedo", mat.Albedo.val as glm.vec3);
+            RenderCommand.SetFloat(mat.GetShader().GetId(), "rawMaterial.Roughness", mat.Roughness.val as number);
+            RenderCommand.SetFloat(mat.GetShader().GetId(), "rawMaterial.Metallic", mat.Metallic.val as number);
+            RenderCommand.SetFloat(mat.GetShader().GetId(), "rawMaterial.AO", mat.AO.val as number);
+        }
+        RenderCommand.DrawSky(this.sky);
+        RenderCommand.ReleaseShader();
+
+        const water = this.water.GetMesh();
+        const waterMat = this.water.GetMesh().GetMaterial();
+        water.transforms.ModelMatrix = glm.mat4.create();
+        water.transforms.ModelMatrix =  glm.mat4.scale(glm.mat4.create(), water.transforms.ModelMatrix, water.transforms.Scale);
+        water.transforms.ModelMatrix =  glm.mat4.translate(glm.mat4.create(), water.transforms.ModelMatrix, water.transforms.Translation);
+        RenderCommand.UseShader(waterMat.GetShader().GetId());
+        RenderCommand.SetMat4f(waterMat.GetShader().GetId(), "model", water.transforms.ModelMatrix);
+        RenderCommand.SetMat4f(waterMat.GetShader().GetId(), "projection", this.camera.GetProjectionMatrix());
+        RenderCommand.SetMat4f(waterMat.GetShader().GetId(), "view", this.camera.GetViewMatrix());
+        RenderCommand.SetVec3f(waterMat.GetShader().GetId(), "sunLight.Position", this.sky.GetSun().transforms.Translation);
+        RenderCommand.SetVec3f(waterMat.GetShader().GetId(), "sunLight.Color", this.sky.GetSun().color);
+        RenderCommand.SetFloat(waterMat.GetShader().GetId(), "sunLight.Intensity", this.sky.GetSun().intensity);
+        RenderCommand.SetVec3f(waterMat.GetShader().GetId(), "camera.Position", this.camera.position);
+        if(mat instanceof PhysicalMaterial) 
+        {
+            RenderCommand.SetVec3f(waterMat.GetShader().GetId(), "rawMaterial.Albedo", mat.Albedo.val as glm.vec3);
+            RenderCommand.SetFloat(waterMat.GetShader().GetId(), "rawMaterial.Roughness", mat.Roughness.val as number);
+            RenderCommand.SetFloat(waterMat.GetShader().GetId(), "rawMaterial.Metallic", mat.Metallic.val as number);
+            RenderCommand.SetFloat(waterMat.GetShader().GetId(), "rawMaterial.AO", mat.AO.val as number);
+        }
+        this.water.OnRender();
+        RenderCommand.ReleaseShader();
+
+
         
         this.ProcessUserInput(ts);
         
@@ -350,5 +377,6 @@ export default class Scene
     public environment !: Environment;
     public sky !: Sky;
     public output !: RenderTarget;
+    public water !: Water;
 
 };

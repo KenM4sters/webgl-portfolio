@@ -6,7 +6,6 @@ import { Geometry } from "./Geometry.ts";
 import { Shader } from "./Shader.ts";
 import Environment from "./Environment.ts";
 import { TextureImageData } from "three/src/textures/types.js";
-import { log } from "three/examples/jsm/nodes/Nodes.js";
 import Sky from "./Sky.ts";
 
 
@@ -537,6 +536,7 @@ export class RenderCommand
             case GeometryDrawFunctionTypes.DRAW_ARRAYS_INDEXED: if(EBO) RenderCommand.DrawIndexed(sky.GetSphere().GetGeometry().drawFunction.shape, EBO.GetUniqueSize() / EBO.GetUniqueIndices().BYTES_PER_ELEMENT , EBO.GetUniqueOffset()); break; 
         };
         
+
         // Cleanup.
         RenderCommand.UnbindVertexArray();
         RenderCommand.UnbindBuffer(BufferType.Index);

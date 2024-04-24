@@ -26,6 +26,11 @@ export default class Framebuffer
     public GetFBO() : Ref<WebGLFramebuffer> { return this.FBO; }
     public GetRBO() : Ref<WebGLRenderbuffer | null> { return this.RBO; }
     public GetColorTexture() : Texture2D { return this.colorTexture; }
+    public SetColorTexture(tex : Texture2D) : void { 
+        RenderCommand.BindFramebuffer(this.FBO);
+        RenderCommand.SetFramebufferColorAttachment(tex.GetId()); 
+        RenderCommand.UnbindFramebuffer(); 
+    }
 
     Init(genRenderBuffer : boolean) 
     {
