@@ -58,12 +58,14 @@ export enum EnvironmentTypes
 
 export interface SkyParams 
 {
-    bottomColor : glm.vec3,
-    topColor : glm.vec3,
-    Albedo : glm.vec3,
-    Roughness : number,
-    Metallic : number,
-    AO : number,
+    turbidity : Ref<number>
+    rayleigh : Ref<number> 
+    mieCoefficient : Ref<number>
+    mieDirectionalG : Ref<number> 
+    sunPosition : glm.vec3,
+    sunColor: glm.vec3,
+    sunIntensity: number,
+    up : glm.vec3
 }
 
 export interface WaterParams 

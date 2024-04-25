@@ -1,130 +1,109 @@
 #version 300 es
 precision highp float;
 
+out vec4 FragColor;
+
 struct Camera 
 {
     vec3 Position;
 };
 
-struct RawMaterial 
+struct SkyParams 
 {
-    vec3 Albedo;
-    float Metallic;
-    float Roughness;
-    float AO;
-    float Emission;
+    float Turbidity;
+    float Rayleigh; 
+    float MieCoefficient;
+    float MieDirectionalG; 
+    vec3 SunPosition;
+    vec3 SunColor;
+    float SunIntensity;
+    vec3 Up;
 };
 
-struct Light 
-{
-    vec3 Position;
-    vec3 Color;
-    float Intensity;
-};
-
-out vec4 FragColor;
-
-in vec3 model_pos;
+in vec3 vWorldPosition;
 in vec3 vNormal;
 in vec2 vUV;
+in vec3 vSunDirection;
+in float vSunfade;
+in vec3 vBetaR;
+in vec3 vBetaM;
+in float vSunE;
 
-uniform vec3 bottomColor;
-uniform vec3 topColor;
-uniform Light sunLight;
 uniform Camera camera;
-uniform RawMaterial rawMaterial;
+uniform SkyParams params;
 
-const float PI = 3.14159265359;
-// ----------------------------------------------------------------------------
-float DistributionGGX(vec3 N, vec3 H, float roughness)
-{
-    float a = roughness*roughness;
-    float a2 = a*a;
-    float NdotH = max(dot(N, H), 0.0);
-    float NdotH2 = NdotH*NdotH;
+// constants for atmospheric scattering
+const float pi = 3.141592653589793238462643383279502884197169;
 
-    float nom   = a2;
-    float denom = (NdotH2 * (a2 - 1.0) + 1.0);
-    denom = PI * denom * denom;
+const float n = 1.0003; // refractive index of air
+const float N = 2.545E25; // number of molecules per unit volume for air at 288.15K and 1013mb (sea level -45 celsius)
 
-    return nom / denom;
+// optical length at zenith for molecules
+const float rayleighZenithLength = 8.4E3;
+const float mieZenithLength = 1.25E3;
+// 66 arc seconds -> degrees, and the cosine of that
+const float sunAngularDiameterCos = 0.999956676946448443553574619906976478926848692873900859324;
+
+// 3.0 / ( 16.0 * pi )
+const float THREE_OVER_SIXTEENPI = 0.05968310365946075;
+// 1.0 / ( 4.0 * pi )
+const float ONE_OVER_FOURPI = 0.07957747154594767;
+
+float RayleighPhase( float cosTheta ) {
+    return THREE_OVER_SIXTEENPI * ( 1.0 + pow( cosTheta, 2.0 ) );
 }
-// ----------------------------------------------------------------------------
-float GeometrySchlickGGX(float NdotV, float roughness)
-{
-    float r = (roughness + 1.0);
-    float k = (r*r) / 8.0;
 
-    float nom   = NdotV;
-    float denom = NdotV * (1.0 - k) + k;
-
-    return nom / denom;
+float HgPhase( float cosTheta, float g ) {
+    float g2 = pow( g, 2.0 );
+    float inverse = 1.0 / pow( 1.0 - 2.0 * g * cosTheta + g2, 1.5 );
+    return ONE_OVER_FOURPI * ( ( 1.0 - g2 ) * inverse );
 }
-// ----------------------------------------------------------------------------
-float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
-{
-    float NdotV = max(dot(N, V), 0.0);
-    float NdotL = max(dot(N, L), 0.0);
-    float ggx2 = GeometrySchlickGGX(NdotV, roughness);
-    float ggx1 = GeometrySchlickGGX(NdotL, roughness);
-
-    return ggx1 * ggx2;
-}
-// ----------------------------------------------------------------------------
-vec3 FresnelSchlick(float cosTheta, vec3 F0)
-{
-    return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
-}
-// ----------------------------------------------------------------------------
 
 void main() {
 
-    vec3 albedoMat;
-    float metallicMat;
-    float roughnessMat;
-    float aoMat;
-    float emissionMat;
+    // if(vWorldPosition.y < 0.0) 
+    // {
+    //     FragColor = vec4(0.0, 0.0, 0.1, 1.0);
+    // } else 
+    // {
+        vec3 direction = normalize( vWorldPosition - camera.Position );
 
-    albedoMat = rawMaterial.Albedo;
-    metallicMat = rawMaterial.Metallic;
-    roughnessMat = rawMaterial.Roughness;
-    aoMat = rawMaterial.AO;
-    emissionMat = rawMaterial.Emission;
+        // optical length
+        // cutoff angle at 90 to avoid singularity in next formula.
+        float zenithAngle = acos( max( 0.0, dot( params.Up, direction ) ) );
+        float inverse = 1.0 / ( cos( zenithAngle ) + 0.15 * pow( 93.885 - ( ( zenithAngle * 180.0 ) / pi ), -1.253 ) );
+        float sR = rayleighZenithLength * inverse;
+        float sM = mieZenithLength * inverse;
 
-    vec3 N = normalize(vNormal);
-    vec3 V = normalize(camera.Position - model_pos);
+        // combined extinction factor
+        vec3 Fex = exp( -( vBetaR * sR + vBetaM * sM ) );
 
-    vec3 F0 = vec3(0.04); 
-    F0 = mix(F0, albedoMat, metallicMat);
-	           
-    // reflectance equation
-    vec3 Lo = vec3(0.0);
-    // calculate per-light radiance
-    vec3 L = normalize(sunLight.Position - model_pos);
-    vec3 H = normalize(V + L);
-    float D = length(sunLight.Position - model_pos);
-    float attenuation = 1.0 / (D * D);
-    vec3 radiance = sunLight.Color * attenuation * sunLight.Intensity;        
-    
-    // cook-torrance brdf
-    float NDF = DistributionGGX(N, H, roughnessMat);        
-    float G   = GeometrySmith(N, V, L, roughnessMat);      
-    vec3 F    = FresnelSchlick(max(dot(H, V), 0.0), F0);       
-    
-    vec3 kS = F;
-    vec3 kD = vec3(1.0) - kS;
-    kD *= 1.0 - metallicMat;	  
-    
-    vec3 numerator    = NDF * G * F;
-    float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001;
-    vec3 specular     = numerator / denominator;  
-        
-    // add to outgoing radiance Lo
-    float NdotL = max(dot(N, L), 0.0);                
-    Lo += (kD * albedoMat / PI + specular) * radiance * NdotL; 
-  
-    vec3 ambient = vec3(0.03) * albedoMat * aoMat;
-    vec3 color = ambient + Lo + emissionMat; 
-   
-    FragColor = vec4(color, 1.0);
+        // in scattering
+        float cosTheta = dot( direction, vSunDirection );
+
+        float rPhase = RayleighPhase( cosTheta * 0.5 + 0.5 );
+        vec3 betaRTheta = vBetaR * rPhase;
+
+        float mPhase = HgPhase( cosTheta, params.MieDirectionalG );
+        vec3 betaMTheta = vBetaM * mPhase;
+
+        vec3 Lin = pow( vSunE * ( ( betaRTheta + betaMTheta ) / ( vBetaR + vBetaM ) ) * ( 1.0 - Fex ), vec3( 1.5 ) );
+        Lin *= mix( vec3( 1.0 ), pow( vSunE * ( ( betaRTheta + betaMTheta ) / ( vBetaR + vBetaM ) ) * Fex, vec3( 1.0 / 2.0 ) ), clamp( pow( 1.0 - dot( params.Up, vSunDirection ), 5.0 ), 0.0, 1.0 ) );
+
+        // nightsky
+        float theta = acos( direction.y ); // elevation --> y-axis, [-pi/2, pi/2]
+        float phi = atan( direction.z, direction.x ); // azimuth --> x-axis [-pi/2, pi/2]
+        vec2 uv = vec2( phi, theta ) / vec2( 2.0 * pi, pi ) + vec2( 0.5, 0.0 );
+        vec3 L0 = vec3( 0.1 ) * Fex;
+
+        // composition + solar disc
+        float sundisk = smoothstep( sunAngularDiameterCos, sunAngularDiameterCos + 0.00002, cosTheta );
+        L0 += ( vSunE * 19000.0 * Fex ) * sundisk;
+
+        vec3 texColor = ( Lin + L0 ) * 0.04 + vec3( 0.0, 0.0003, 0.00075 );
+
+        vec3 retColor = pow( texColor, vec3( 1.0 / ( 1.2 + ( 1.2 * vSunfade ) ) ) );
+
+        FragColor = vec4( retColor, 1.0 );
+    // }
 }

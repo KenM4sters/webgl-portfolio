@@ -50,8 +50,8 @@ export default class Resources
 export const sources : {name: string, type: string, path: string}[] = 
 [
     {
-        name: "ocean",
-        type: "HDR",
-        path: "/Textures/ocean.hdr"
+        name: "waterNormal",
+        type: "LDR",
+        path: "/Textures/waterNormals.jpg"
     },
 ]

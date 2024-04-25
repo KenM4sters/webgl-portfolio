@@ -17,7 +17,7 @@ export default class Renderer
         this.postProcessor.Init(gui);
     }
 
-    Render(scene : Scene, ts : number) : void 
+    Render(scene : Scene, ts : number, currrentTime : number) : void 
     {
         // Set Framebuffer.
         if(scene.output.target) 
@@ -37,7 +37,7 @@ export default class Renderer
         RenderCommand.ClearDepthBufferBit(scene.output.config.ClearDepthBit);
         RenderCommand.SetClearColor([0.01, 0.01, 0.01, 1.0]);
 
-        scene.Render(ts);
+        scene.Render(ts, currrentTime);
         
         // Cleanup.
         if(scene.output.target?.GetFBO()) RenderCommand.UnbindFramebuffer();

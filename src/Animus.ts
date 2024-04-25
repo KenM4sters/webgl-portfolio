@@ -11,6 +11,7 @@ import App from "./App";
 import Renderer from "./Renderer/Renderer";
 import Scene from "./Scene";
 import Input from "./Input";
+import { log } from "three/examples/jsm/nodes/Nodes.js";
 
 var lastFrame : number = performance.now();
 
@@ -44,7 +45,8 @@ export default class Animus extends App
         const currentFrame : number = performance.now();
         const ts : number = (currentFrame - lastFrame) * 0.001;
         lastFrame = currentFrame;
-        this.renderer.Render(this.scene, ts);
+        this.renderer.Render(this.scene, ts, currentFrame);
+        
         window.requestAnimationFrame(() => this.Run());
     }
 

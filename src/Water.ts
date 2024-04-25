@@ -12,7 +12,9 @@ import vertSrc from "./Shaders/Water.vert?raw";
 import fragSrc from "./Shaders/Water.frag?raw";
 import { BufferType, RenderCommand } from "./RenderCommand";
 import PerspectiveCamera from "./Camera/PerspectiveCamera";
-import { Texture } from "three";
+import Scene from "./Scene";
+import Resources from "./Resources";
+
 
 export default class Water 
 {
@@ -34,22 +36,50 @@ export default class Water
             DataType: DataSizes.FLOAT
         };
         this.reflectionTex = new Texture2D(imageConfig);
+        this.refractionTex = new Texture2D(imageConfig);
         this.framebuffer = new Framebuffer(this.reflectionTex, true);
+
+        const normalImage = Resources.GetTexture("waterNormal");
+        if(!normalImage) throw new Error("Resource | Failed to get waterNormal texture!");
+        this.normalMap = new Texture2D(normalImage);
+
+
         this.clippingPlanes.push(glm.vec4.fromValues(0, 1, 0, this.mesh.transforms.Translation[1]));
     }
 
-    public OnRender() : void 
+    public OnRender(scene : Scene) : void 
     {
+        RenderCommand.UnbindFramebuffer();
+        RenderCommand.UnbindRenderbuffer()
+        RenderCommand.BindFramebuffer(this.framebuffer.GetFBO());
+        RenderCommand.BindRenderbuffer(this.framebuffer.GetRBO());
+        scene.SceneRender();
+        RenderCommand.UnbindFramebuffer();
+        RenderCommand.UnbindRenderbuffer();
 
         // Capture the scene from the perspective of the camera at it's current position, and once
         // again from its position reflected around the water gemetry.
-        
-
-
+        const originalPos = {...this.camera.position};
         this.camera.position = glm.vec3.subtract(this.camera.position, this.camera.position, this.mesh.transforms.Translation);
         this.camera.position = glm.vec3.subtract(this.camera.position, this.mesh.transforms.Translation, this.camera.position);
 
+        RenderCommand.UnbindFramebuffer();
+        RenderCommand.UnbindRenderbuffer()
+        RenderCommand.BindFramebuffer(this.framebuffer.GetFBO());
+        RenderCommand.BindRenderbuffer(this.framebuffer.GetRBO());
+        this.framebuffer.SetColorTexture(this.refractionTex);
+        scene.SceneRender();
+        RenderCommand.UnbindFramebuffer();
+        RenderCommand.UnbindRenderbuffer();
 
+        if(scene.output.target) 
+        {
+            RenderCommand.BindFramebuffer(scene.output.target.GetFBO());
+            RenderCommand.BindRenderbuffer(scene.output.target.GetRBO());
+        }
+
+        this.camera.position = originalPos;
+        scene.SceneRender();
         // Draw Mesh
         // ----------------------------------------------------------------
         var VAO = this.mesh.GetGeometry().vertexArray;
@@ -58,6 +88,13 @@ export default class Water
         // Bind the vertex array object and shader program.
         RenderCommand.BindVertexArray(VAO.GetId());
         RenderCommand.UseShader(shader.GetId());
+        // Bind the refraction and reflection textures.
+        RenderCommand.BindTexture(this.reflectionTex.GetId(), TextureType.Tex2D, 0);
+        RenderCommand.BindTexture(this.refractionTex.GetId(), TextureType.Tex2D, 1);
+        RenderCommand.BindTexture(this.normalMap.GetId(), TextureType.Tex2D, 2);
+        RenderCommand.SetInt(shader.GetId(), "reflectionTex", 0);
+        RenderCommand.SetInt(shader.GetId(), "refractionTex", 1);
+        RenderCommand.SetInt(shader.GetId(), "normalMap", 2);
         // Make the correct draw call.
         switch(this.mesh.GetGeometry().drawFunction.type) 
         {
@@ -68,6 +105,8 @@ export default class Water
         RenderCommand.UnbindVertexArray();
         RenderCommand.UnbindBuffer(BufferType.Index);
         RenderCommand.ReleaseShader();
+        RenderCommand.UnBindTexture(TextureType.Tex2D, 0);
+        RenderCommand.UnBindTexture(TextureType.Tex2D, 1);
         // ----------------------------------------------------------------
     }
 
@@ -79,6 +118,7 @@ export default class Water
     private mesh : Mesh;
     private reflectionTex !: Texture2D;
     private refractionTex !: Texture2D;
+    private normalMap !: Texture2D;
     private camera : PerspectiveCamera;
     private framebuffer !: Framebuffer;
     private clippingPlanes : glm.vec4[] = [];
