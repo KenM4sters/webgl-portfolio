@@ -62,10 +62,10 @@ export interface SkyParams
     rayleigh : Ref<number> 
     mieCoefficient : Ref<number>
     mieDirectionalG : Ref<number> 
-    sunPosition : glm.vec3,
-    sunColor: glm.vec3,
+    sunPosition : Ref<glm.vec3>,
+    sunColor: Ref<glm.vec3>,
     sunIntensity: Ref<number>,
-    up : glm.vec3
+    up : Ref<glm.vec3>
 }
 
 export interface WaterParams 
@@ -105,6 +105,11 @@ export enum ImageChannels
     RGBA,
     RGBA32F
 }
+export enum ImageWrappingTypes 
+{
+    CLAMP,
+    REPEAT,
+}
 
 export interface ImageConfig {
     TargetType : number;
@@ -114,6 +119,7 @@ export interface ImageConfig {
     Height : number;
     Format : number;
     DataType : number;
+    WrappingType : ImageWrappingTypes
 };
 
 export enum DataSizes 

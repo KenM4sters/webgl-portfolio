@@ -5,7 +5,7 @@ import { PlaneGeometry, SphereGeometry } from "./Geometry";
 import { PhysicalMaterial } from "./Material";
 import { Shader } from "./Shader";
 import { Light, PointLight } from "./Light";
-import { DataSizes, ImageChannels, ImageConfig, RenderTarget, SkyParams, TextureType, WaterParams } from "./Types";
+import { DataSizes, ImageChannels, ImageConfig, ImageWrappingTypes, RenderTarget, SkyParams, TextureType, WaterParams } from "./Types";
 import { RenderCommand } from "./RenderCommand";
 import Input from "./Input";
 import PerspectiveCamera, { CameraDirections } from "./Camera/PerspectiveCamera";
@@ -18,11 +18,15 @@ import skyVertSrc from "./Shaders/Sky.vert?raw";
 import skyFragSrc from "./Shaders/Sky.frag?raw";
 import Water from "./Water";
 import Sky from "./Sky";
+import AppStateListener, { ApplicationStates } from "./AppStateListener";
 
 
-export default class Scene
+export default class Scene extends AppStateListener
 {
-    constructor() {}
+    constructor() 
+    {
+        super();
+    }
 
     public Init(Gui : GUI, w : number, h : number): void 
     {
@@ -36,7 +40,8 @@ export default class Scene
             Width: w,
             Height: h,
             Format: ImageChannels.RGBA,
-            DataType: DataSizes.FLOAT
+            DataType: DataSizes.FLOAT,
+            WrappingType: ImageWrappingTypes.CLAMP
         }
 
         this.output = 
@@ -50,10 +55,10 @@ export default class Scene
         };
 
         // Camera
-        this.camera = new PerspectiveCamera([0.0, 2.0, 10.0], w, h);
+        this.camera = new PerspectiveCamera([0.0, 2.0, 90.0], w, h);
 
         // Water. 
-        var waterGeo = new PlaneGeometry(100, 100, 100, 100);
+        var waterGeo = new PlaneGeometry(1000, 1000, 10, 10);
         const waterParams : WaterParams = {};
         this.water = new Water(waterGeo, this.camera, waterParams, w, h);
 
@@ -62,47 +67,36 @@ export default class Scene
         const skyMat = new PhysicalMaterial(new Shader(skyVertSrc, skyFragSrc));
         skyMat.Albedo.val = [0.0, 0.1, 1.0];
         const sky = new Mesh(skyGeo, skyMat);
-        const sunLight = new PointLight([0.4, 1.0, 1.0], 10000);
-        sunLight.transforms.Translation = glm.vec3.fromValues(0.0, 67, -200.0);
-        this.lights.push(sunLight);
 
         const skyParams : SkyParams = 
         {
             turbidity: {val: 0.09},
             rayleigh: {val: 0.16},
-            mieCoefficient: {val: 0.03 },
+            mieCoefficient: {val: 0.03},
             mieDirectionalG: {val: 0.99} ,
-            sunPosition: sunLight.transforms.Translation,
-            sunColor: sunLight.color,
-            sunIntensity: {val: sunLight.intensity},
-            up: glm.vec3.fromValues( 0, 1, 0 ) 
+            sunPosition: {val: glm.vec3.fromValues(0.0, 45.0, -200.0)},
+            sunColor: {val: glm.vec3.fromValues(1.0, 1.0, 1.0)},
+            sunIntensity: {val: 10000},
+            up: {val: glm.vec3.fromValues(0, 1, 0)} 
         };
 
-        this.sky = new Sky(sky, sunLight, skyParams);
+        this.sky = new Sky(sky, skyParams);
 
         // GUI Parameters
         // Sky
         const SkyFolder = Gui.addFolder('Sky');
-        SkyFolder.add(sunLight.transforms.Translation, '0', -200.0, 200.0, 1).name("sunLight|PosX").onChange(() => {
-            sunLight.transforms.ModelMatrix = glm.mat4.translate(glm.mat4.create(), sunLight.transforms.ModelMatrix, sunLight.transforms.Translation);
-        })
-        SkyFolder.add(sunLight.transforms.Translation, '1', -200.0, 200.0, 1).name("sunLight|PosY").onChange(() => {
-            sunLight.transforms.ModelMatrix = glm.mat4.translate(glm.mat4.create(), sunLight.transforms.ModelMatrix, sunLight.transforms.Translation);
-        })
-        SkyFolder.add(sunLight.transforms.Translation, '2', -200.0, 200.0, 1).name("sunLight|PosZ").onChange(() => {
-            sunLight.transforms.ModelMatrix = glm.mat4.translate(glm.mat4.create(), sunLight.transforms.ModelMatrix, sunLight.transforms.Translation);
-        })
-        SkyFolder.add(skyParams.sunIntensity, 'val', 0.0, 10000.0, 50.0).name("sunLight|Intensity");
-        SkyFolder.add(skyParams.sunColor, '0', 0.0, 1.0, 0.1).name("sunLight|ColorR");
-        SkyFolder.add(skyParams.sunColor, '1', 0.0, 1.0, 0.1).name("sunLight|ColorG");
-        SkyFolder.add(skyParams.sunColor, '2', 0.0, 1.0, 0.1).name("sunLight|ColorB");
-
-        SkyFolder.add(skyParams.mieCoefficient,  'val',  0.0, 1.0, 0.01).name("mieCoefficient");
-        SkyFolder.add(skyParams.mieDirectionalG, 'val',  0.0, 1.0, 0.01).name("mieDirectionalG");
-        SkyFolder.add(skyParams.rayleigh,        'val',  0.0, 4.0, 0.01).name("rayleigh");
-        SkyFolder.add(skyParams.turbidity,       'val',  0.0, 20.0, 0.01).name("turbidity");
-
-
+        SkyFolder.add(skyParams.sunPosition.val,     '0',    -200.0, 200.0,     1.0).name("sunLight|PositionX");
+        SkyFolder.add(skyParams.sunPosition.val,     '1',    -200.0, 200.0,     1.0).name("sunLight|PositionY");
+        SkyFolder.add(skyParams.sunPosition.val,     '2',    -200.0, 200.0,     1.0).name("sunLight|PositionZ");
+        SkyFolder.add(skyParams.sunColor.val,        '0',    0.0, 1.0,     0.1).name("sunLight|ColorR");
+        SkyFolder.add(skyParams.sunColor.val,        '1',    0.0, 1.0,     0.1).name("sunLight|ColorG");
+        SkyFolder.add(skyParams.sunColor.val,        '2',    0.0, 1.0,     0.1).name("sunLight|ColorB");   
+        SkyFolder.add(skyParams.sunIntensity,        'val',  0.0, 10000.0, 50.0).name("sunLight|Intensity");
+        
+        SkyFolder.add(skyParams.mieCoefficient,      'val',  0.0, 1.0,     0.01).name("mieCoefficient");
+        SkyFolder.add(skyParams.mieDirectionalG,     'val',  0.0, 1.0,     0.01).name("mieDirectionalG");
+        SkyFolder.add(skyParams.rayleigh,            'val',  0.0, 4.0,     0.01).name("rayleigh");
+        SkyFolder.add(skyParams.turbidity,           'val',  0.0, 20.0,    0.01).name("turbidity");
 
         // Water 
         const WaterFolder = Gui.addFolder('Water');
@@ -134,17 +128,17 @@ export default class Scene
 
         const water = this.water.GetMesh();
         const waterMat = this.water.GetMesh().GetMaterial();
-        water.transforms.ModelMatrix = glm.mat4.create();
+        water.transforms.ModelMatrix =  glm.mat4.create();
         water.transforms.ModelMatrix =  glm.mat4.scale(glm.mat4.create(), water.transforms.ModelMatrix, water.transforms.Scale);
         water.transforms.ModelMatrix =  glm.mat4.translate(glm.mat4.create(), water.transforms.ModelMatrix, water.transforms.Translation);
         
         RenderCommand.UseShader(waterMat.GetShader().GetId());
-        RenderCommand.SetFloat(waterMat.GetShader().GetId(), "time", currentTime);
+        RenderCommand.SetFloat(waterMat.GetShader().GetId(), "time", currentTime / 10000);
         RenderCommand.SetMat4f(waterMat.GetShader().GetId(), "model", water.transforms.ModelMatrix);
         RenderCommand.SetMat4f(waterMat.GetShader().GetId(), "projection", this.camera.GetProjectionMatrix());
         RenderCommand.SetMat4f(waterMat.GetShader().GetId(), "view", this.camera.GetViewMatrix());
-        RenderCommand.SetVec3f(waterMat.GetShader().GetId(), "sunPosition", this.sky.GetParams().sunPosition);
-        RenderCommand.SetVec3f(waterMat.GetShader().GetId(), "sunColor", this.sky.GetParams().sunColor);
+        RenderCommand.SetVec3f(waterMat.GetShader().GetId(), "sunPosition", this.sky.GetParams().sunPosition.val);
+        RenderCommand.SetVec3f(waterMat.GetShader().GetId(), "sunColor", this.sky.GetParams().sunColor.val);
         RenderCommand.SetFloat(waterMat.GetShader().GetId(), "sunIntensity", this.sky.GetParams().sunIntensity.val);
         RenderCommand.SetVec3f(waterMat.GetShader().GetId(), "cameraPosition", this.camera.position);
         this.water.OnRender(this);
@@ -236,10 +230,10 @@ export default class Scene
             RenderCommand.SetFloat(mat.GetShader().GetId(), "params.Rayleigh", this.sky.GetParams().rayleigh.val);
             RenderCommand.SetFloat(mat.GetShader().GetId(), "params.MieCoefficient", this.sky.GetParams().mieCoefficient.val);
             RenderCommand.SetFloat(mat.GetShader().GetId(), "params.MieDirectionalG", this.sky.GetParams().mieDirectionalG.val);
-            RenderCommand.SetVec3f(mat.GetShader().GetId(), "params.SunPosition", this.sky.GetParams().sunPosition);
-            RenderCommand.SetVec3f(mat.GetShader().GetId(), "params.SunColor", this.sky.GetParams().sunColor);
+            RenderCommand.SetVec3f(mat.GetShader().GetId(), "params.SunPosition", this.sky.GetParams().sunPosition.val);
+            RenderCommand.SetVec3f(mat.GetShader().GetId(), "params.SunColor", this.sky.GetParams().sunColor.val);
             RenderCommand.SetFloat(mat.GetShader().GetId(), "params.SunIntensity", this.sky.GetParams().sunIntensity.val);
-            RenderCommand.SetVec3f(mat.GetShader().GetId(), "params.Up", this.sky.GetParams().up);
+            RenderCommand.SetVec3f(mat.GetShader().GetId(), "params.Up", this.sky.GetParams().up.val);
 
             RenderCommand.DrawSky(this.sky);
             RenderCommand.ReleaseShader();
@@ -263,7 +257,8 @@ export default class Scene
             Width: w,
             Height: h,
             Format:ImageChannels.RGBA,
-            DataType: DataSizes.FLOAT
+            DataType: DataSizes.FLOAT,
+            WrappingType: ImageWrappingTypes.CLAMP
         }
 
         // Reset the target.
@@ -294,6 +289,25 @@ export default class Scene
         }
     }
 
+    protected HandleChangeInState(newState: ApplicationStates): void 
+    {
+        let params = this.sky.GetParams();
+        if(newState == ApplicationStates.VIEWING_PROJECTS) 
+        {
+            params.rayleigh.val = 4.0;
+            params.mieCoefficient.val = 0.1;
+            params.mieDirectionalG.val = 0.7;
+            params.sunPosition.val = [0.0, 4.0, -200.0];
+
+        } else 
+        {
+            params.rayleigh.val = 0.16;
+            params.mieCoefficient.val = 0.03;
+            params.mieDirectionalG.val = 0.99;
+            params.sunPosition.val  = [0.0, 45.0, -200.0];
+        }
+    }
+
     public meshes : Array<Mesh> = new Array<Mesh>();
     public lights : Array<Light> = new Array<Light>();
     public camera !: PerspectiveCamera; 
@@ -301,6 +315,5 @@ export default class Scene
     public sky !: Sky;
     public output !: RenderTarget;
     public water !: Water;
-    private toSceneFBO : boolean = true;
 
 };

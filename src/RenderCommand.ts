@@ -1,6 +1,6 @@
 import * as glm from "gl-matrix";
 import { VertexBuffer, IndexBuffer } from "./Buffer.ts";
-import { FunctionEquationTypes, BlendFunctionTypes, ColorAttachments, DataSizes, GeometryDrawFunctionShapes, GeometryDrawFunctionTypes, ImageChannels, ImageConfig, Ref, ShaderDataType, ShaderType, TextureType } from "./Types.ts";
+import { FunctionEquationTypes, BlendFunctionTypes, ColorAttachments, DataSizes, GeometryDrawFunctionShapes, GeometryDrawFunctionTypes, ImageChannels, ImageConfig, Ref, ShaderDataType, ShaderType, TextureType, ImageWrappingTypes } from "./Types.ts";
 import { Mesh } from "./Mesh.ts";
 import { Geometry } from "./Geometry.ts";
 import { Shader } from "./Shader.ts";
@@ -267,22 +267,29 @@ export class RenderCommand
         RenderCommand.gl.pixelStorei(RenderCommand.gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, RenderCommand.gl.NONE);
         RenderCommand.gl.texImage2D(RenderCommand.ConvertTextureTypeToNative(config.TargetType), config.MipMapLevel, RenderCommand.ConvertImageChannelsToNative(config.NChannels), config.Width, config.Height, 0, RenderCommand.ConvertImageChannelsToNative(config.Format), RenderCommand.ConvertDataSizes(config.DataType), data.val);
     }  
-    public static SetTexture2DImage(data : HTMLImageElement) : void 
+    public static SetTexture2DImage(data : HTMLImageElement, config : ImageConfig) : void 
     {
         RenderCommand.gl.texParameteri(RenderCommand.gl.TEXTURE_2D, RenderCommand.gl.TEXTURE_MIN_FILTER, RenderCommand.gl.LINEAR);
         RenderCommand.gl.texParameteri(RenderCommand.gl.TEXTURE_2D, RenderCommand.gl.TEXTURE_MAG_FILTER, RenderCommand.gl.LINEAR);
-        RenderCommand.gl.texParameteri(RenderCommand.gl.TEXTURE_2D, RenderCommand.gl.TEXTURE_WRAP_S, RenderCommand.gl.CLAMP_TO_EDGE);
-        RenderCommand.gl.texParameteri(RenderCommand.gl.TEXTURE_2D, RenderCommand.gl.TEXTURE_WRAP_T, RenderCommand.gl.CLAMP_TO_EDGE);
+        if(config) 
+        {
+            RenderCommand.gl.texParameteri(RenderCommand.gl.TEXTURE_2D, RenderCommand.gl.TEXTURE_WRAP_S, RenderCommand.ConvertTextureWrappingType(config.WrappingType));
+            RenderCommand.gl.texParameteri(RenderCommand.gl.TEXTURE_2D, RenderCommand.gl.TEXTURE_WRAP_T, RenderCommand.ConvertTextureWrappingType(config.WrappingType));
+        } else 
+        {
+            RenderCommand.gl.texParameteri(RenderCommand.gl.TEXTURE_2D, RenderCommand.gl.TEXTURE_WRAP_S, RenderCommand.gl.CLAMP_TO_EDGE);
+            RenderCommand.gl.texParameteri(RenderCommand.gl.TEXTURE_2D, RenderCommand.gl.TEXTURE_WRAP_T, RenderCommand.gl.CLAMP_TO_EDGE);
+        }
         RenderCommand.gl.pixelStorei(RenderCommand.gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, RenderCommand.gl.NONE);
         RenderCommand.gl.texImage2D(RenderCommand.gl.TEXTURE_2D, 0, RenderCommand.gl.RGB, RenderCommand.gl.RGB, RenderCommand.gl.UNSIGNED_BYTE, data);
     }  
-    public static SetTexture2DImageHDR(data : TextureImageData) : void 
+    public static SetTexture2DImageHDR(data : TextureImageData, config : ImageConfig) : void 
     {
         RenderCommand.gl.texParameteri(RenderCommand.gl.TEXTURE_2D, RenderCommand.gl.TEXTURE_MIN_FILTER, RenderCommand.gl.LINEAR);
         RenderCommand.gl.texParameteri(RenderCommand.gl.TEXTURE_2D, RenderCommand.gl.TEXTURE_MAG_FILTER, RenderCommand.gl.LINEAR);
-        RenderCommand.gl.texParameteri(RenderCommand.gl.TEXTURE_2D, RenderCommand.gl.TEXTURE_WRAP_S, RenderCommand.gl.CLAMP_TO_EDGE);
-        RenderCommand.gl.texParameteri(RenderCommand.gl.TEXTURE_2D, RenderCommand.gl.TEXTURE_WRAP_T, RenderCommand.gl.CLAMP_TO_EDGE);
-        RenderCommand.gl.pixelStorei(RenderCommand.gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, RenderCommand.gl.NONE);
+        RenderCommand.gl.texParameteri(RenderCommand.gl.TEXTURE_2D, RenderCommand.gl.TEXTURE_WRAP_S, RenderCommand.ConvertTextureWrappingType(config.WrappingType));
+        RenderCommand.gl.texParameteri(RenderCommand.gl.TEXTURE_2D, RenderCommand.gl.TEXTURE_WRAP_T, RenderCommand.ConvertTextureWrappingType(config.WrappingType));
+        // RenderCommand.gl.pixelStorei(RenderCommand.gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, RenderCommand.gl.NONE);
         RenderCommand.gl.texImage2D(RenderCommand.gl.TEXTURE_2D, 0, RenderCommand.gl.RGBA32F, data.width, data.height, 0, RenderCommand.gl.RGBA, RenderCommand.gl.FLOAT, new Float32Array(data.data));
     }
     public static SetTextureCubeMapArray(config : ImageConfig, data : Ref<Float32Array>) : void 
@@ -589,6 +596,16 @@ export class RenderCommand
         {
             case TextureType.Tex2D: return RenderCommand.gl.TEXTURE_2D;
             case TextureType.CubeTex: return RenderCommand.gl.TEXTURE_CUBE_MAP;
+        }
+
+        return 0;
+    }
+    private static ConvertTextureWrappingType(type : ImageWrappingTypes) : number 
+    {
+        switch(type) 
+        {
+            case ImageWrappingTypes.CLAMP: return RenderCommand.gl.CLAMP_TO_EDGE;
+            case ImageWrappingTypes.REPEAT: return RenderCommand.gl.REPEAT;
         }
 
         return 0;

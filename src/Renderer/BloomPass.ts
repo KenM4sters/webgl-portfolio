@@ -4,7 +4,7 @@ import { SquareGeometry } from "../Geometry";
 import { BufferType, RenderCommand } from "../RenderCommand";
 import { Shader } from "../Shader";
 import { Texture2D } from "../Texture";
-import { FunctionEquationTypes, BlendFunctionTypes, ColorAttachments, DataSizes, ImageChannels, ImageConfig, Ref, RenderTarget, TextureType } from "../Types";
+import { FunctionEquationTypes, BlendFunctionTypes, ColorAttachments, DataSizes, ImageChannels, ImageConfig, Ref, RenderTarget, TextureType, ImageWrappingTypes } from "../Types";
 import { RenderPass } from "./ScreenPass";
 import { PostProcessor } from "./PostProcessor";
 
@@ -15,6 +15,7 @@ import rawVert from "../Shaders/Raw.vert?raw";
 import rawFrag from "../Shaders/Raw.frag?raw"; 
 import { IndexBuffer } from "../Buffer";
 import GUI from "lil-gui";
+import { ApplicationStates } from "../AppStateListener";
 
 export default class BloomPass extends RenderPass 
 {
@@ -46,7 +47,8 @@ export default class BloomPass extends RenderPass
                 Width: mipSize[0],
                 Height: mipSize[1],
                 Format: ImageChannels.RGBA,
-                DataType: DataSizes.FLOAT   
+                DataType: DataSizes.FLOAT,
+                WrappingType: ImageWrappingTypes.CLAMP
             }
             this.mipChain.push(new Texture2D(mipConfig));
         }
@@ -76,7 +78,8 @@ export default class BloomPass extends RenderPass
             Width: this.windowWidth,
             Height: this.windowHeight,
             Format: ImageChannels.RGBA,
-            DataType: DataSizes.FLOAT
+            DataType: DataSizes.FLOAT,
+            WrappingType: ImageWrappingTypes.CLAMP
         }
 
         this.output = {
@@ -147,7 +150,8 @@ export default class BloomPass extends RenderPass
             Width: this.windowWidth,
             Height: this.windowHeight,
             Format: ImageChannels.RGBA,
-            DataType: DataSizes.FLOAT
+            DataType: DataSizes.FLOAT,
+            WrappingType: ImageWrappingTypes.CLAMP
         }
 
         this.output = {
@@ -176,7 +180,8 @@ export default class BloomPass extends RenderPass
                 Width: mipSize[0],
                 Height: mipSize[1],
                 Format: ImageChannels.RGBA,
-                DataType: DataSizes.FLOAT
+                DataType: DataSizes.FLOAT,
+                WrappingType: ImageWrappingTypes.CLAMP
             }
             this.mipChain.push(new Texture2D(mipConfig));
         }
@@ -259,6 +264,10 @@ export default class BloomPass extends RenderPass
         RenderCommand.EnableAdditiveBlending(false);
         RenderCommand.ReleaseShader();
         RenderCommand.UnBindTexture(TextureType.Tex2D);
+    }
+
+    protected HandleChangeInState(newState: ApplicationStates): void 
+    {
     }
 
     private blurFBO !: Framebuffer;

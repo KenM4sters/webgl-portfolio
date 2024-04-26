@@ -83,4 +83,4 @@ export default class Animus extends App
     private renderer !: Renderer;
     private input !: Input;
 
-}
+};

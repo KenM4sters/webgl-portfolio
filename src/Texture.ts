@@ -58,8 +58,8 @@ export class Texture2D extends Texture
     override SetImage(img : HTMLImageElement | TextureImageData) : void 
     {
         RenderCommand.BindTexture(this.Id, TextureType.Tex2D, 0);
-        if(img instanceof HTMLImageElement) RenderCommand.SetTexture2DImage(img);
-        else RenderCommand.SetTexture2DImageHDR(img);
+        if(img instanceof HTMLImageElement) RenderCommand.SetTexture2DImage(img, this.config);
+        else RenderCommand.SetTexture2DImageHDR(img, this.config);
         RenderCommand.UnBindTexture(TextureType.Tex2D, 0);
     }
 

@@ -9,7 +9,6 @@ export default class Renderer
     constructor() 
     {
         this.postProcessor = new PostProcessor();
-
     }
 
     Init(gui : GUI) : void 

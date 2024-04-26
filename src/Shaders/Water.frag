@@ -72,54 +72,44 @@ float DistributionGGX(vec3 N, vec3 H, float roughness)
 // ----------------------------------------------------------------------------
 vec4 GetNoise(vec2 uv){
     vec2 uv0 = (uv/103.0)+vec2(time/17.0, time/29.0);
-    vec2 uv1 = uv/107.0-vec2(time/-19.0, time/31.0);
+    vec2 uv1 = (uv/107.0)-vec2(time/-19.0, time/31.0);
     vec2 uv2 = uv/vec2(897.0, 983.0)+vec2(time/101.0, time/97.0);
     vec2 uv3 = uv/vec2(991.0, 877.0)-vec2(time/109.0, time/-113.0);
-    vec4 noise = (texture(normalMap, uv0)) +
-                 (texture(normalMap, uv1)) +
-                 (texture(normalMap, uv2)) +
-                 (texture(normalMap, uv3));
+    vec4 noise = (texture(normalMap, uv0)) + (texture(normalMap, uv1)) 
+                + (texture(normalMap, uv2)) + (texture(normalMap, uv3));
     return noise*0.5-1.0;
 }
 // ----------------------------------------------------------------
 
-void main() {
-    // vec3 reflection = texture(reflectionTex, vUV).rgb;
-    // vec3 refraction = texture(refractionTex, vUV).rgb;
-    // vec3 blackRefraction = vec3(0.0, 0.0, 0.1);
+void main(){
 
-    vec3 albedoMat = vec3(0.0, 0.0, 0.1);
-    float metallicMat = 0.4;
-    float roughnessMat = 0.8;
-    float aoMat = 0.1;
-    float shininess = 0.8;
+    // Properties
+    float shininess = 100.0;
+    float spec = 2.0;
+    float dif = 0.5;
 
-    // Sample the normal map texture
-    vec3 normal = texture(normalMap, vUV).rgb;
-    // vec3 normal = vNormal;
-    // Inverse gamma correction
-    normal = pow(normal, vec3(2.2));
-    // Convert the color values to the range [-1, 1]
-    normal = normal * 2.0 - 1.0;
-    normal = vNormalMatrix * normal;
+    vec4 noise = GetNoise(vWorldPosition.xz);
+    // vec4 noise = vec4(texture(normalMap, vUV).rgb, 1.0);
+    vec3 surfaceNormal = normalize(noise.xzy * vec3(2.0, 1.0, 2.0));
 
-    vec3 N = normalize(normal);
+    vec3 diffuse = vec3(0.0);
+    vec3 specular = vec3(0.0);
 
-    vec3 L = normalize(sunPosition - vWorldPosition);
-    // Ambient light
-    float attentuation = 1.0 / (pow(length(sunPosition - vWorldPosition), 2.0));
-    vec3 ambient = albedoMat * attentuation * sunIntensity;
-    // Diffuse light_cube
-    float cosTheta = max(dot(N, L), 0.0);
-    vec3 diffuse = albedoMat * cosTheta;
-    // Specular light_cube
-    vec3 V = normalize(cameraPosition - vWorldPosition);
-    vec3 reflection = reflect(-L, N);
-    float I = pow(max(dot(V, reflection), 0.0), shininess);
-    vec3 specular = I * vec3(1.0);
+    vec3 worldToEye = cameraPosition-vWorldPosition;
+    vec3 eyeDirection = normalize(worldToEye);
 
-    vec3 result = ambient + diffuse + specular;
-    FragColor = vec4(result, 1.0);
+    vec3 sunDirection = normalize(sunPosition - vWorldPosition);
+    vec3 reflection = normalize(reflect(-sunDirection, surfaceNormal));
+    float direction = max(0.0, dot(eyeDirection, reflection));
+    specular += pow(direction, shininess) * sunColor * spec;
+    diffuse += max(dot(sunDirection, surfaceNormal),0.0) * sunColor * dif;
+
+    FragColor = vec4((diffuse + specular + vec3(0.1)) * vec3(0.3, 0.5, 0.9), 1.0);
+    // FragColor = noise;
 }
 
-
+// Inverse gamma correction
+// normal = pow(normal, vec3(2.2));
+// Convert the color values to the range [-1, 1]
+// normal = normal * 2.0 - 1.0;
+// normal = vNormalMatrix * normal;

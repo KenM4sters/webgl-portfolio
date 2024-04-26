@@ -9,11 +9,13 @@ import { IndexBuffer } from "../Buffer";
 import { Ref, RenderTarget, TextureType } from "../Types";
 import { PostProcessor } from "./PostProcessor";
 import GUI from "lil-gui";
+import AppStateListener, { ApplicationStates } from "../AppStateListener";
 
-export abstract class RenderPass
+export abstract class RenderPass extends AppStateListener
 {
     constructor(geo : SquareGeometry) 
     {
+        super();
         this.quad = geo;
     }
     abstract Init(gui : GUI) : void;
@@ -99,6 +101,10 @@ export class ScreenPass extends RenderPass
 
     override Resize(w: number, h: number): void {
         
+    }
+
+    protected HandleChangeInState(newState: ApplicationStates): void 
+    {
     }
 
     bloomStrength : Ref<number> = {val: 0.0};
