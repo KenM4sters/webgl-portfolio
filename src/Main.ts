@@ -11,12 +11,12 @@ const frontend : Frontend = new Frontend(canvas);
 frontend.Init();
 
 // WebGL Experience.
-const animus = new Animus(canvas as HTMLCanvasElement); 
 const resources = new Resources();
 resources.LoadAllResources(RunWebGL);
 
 function RunWebGL() : void 
 {
+    const animus = new Animus(canvas as HTMLCanvasElement); 
     animus.Init();  
     animus.Run();
 }

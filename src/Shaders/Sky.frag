@@ -1,6 +1,12 @@
 #version 300 es
 precision highp float;
 
+
+/*
+* This shader code is based on the implementation provided by THREE.js which can be found at the 
+* at the following URL: https://threejs.org/examples/webgl_shaders_sky.html
+*/
+
 out vec4 FragColor;
 
 struct Camera 

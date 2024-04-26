@@ -11,7 +11,6 @@ import App from "./App";
 import Renderer from "./Renderer/Renderer";
 import Scene from "./Scene";
 import Input from "./Input";
-import { log } from "three/examples/jsm/nodes/Nodes.js";
 
 var lastFrame : number = performance.now();
 

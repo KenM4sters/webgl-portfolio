@@ -50,7 +50,7 @@ export default class Scene
         };
 
         // Camera
-        this.camera = new PerspectiveCamera([0.0, 10.0, 70.0], w, h);
+        this.camera = new PerspectiveCamera([0.0, 2.0, 10.0], w, h);
 
         // Water. 
         var waterGeo = new PlaneGeometry(100, 100, 100, 100);
@@ -63,7 +63,7 @@ export default class Scene
         skyMat.Albedo.val = [0.0, 0.1, 1.0];
         const sky = new Mesh(skyGeo, skyMat);
         const sunLight = new PointLight([0.4, 1.0, 1.0], 10000);
-        sunLight.transforms.Translation = glm.vec3.fromValues(0.0, 40.0, -150.0);
+        sunLight.transforms.Translation = glm.vec3.fromValues(0.0, 67, -200.0);
         this.lights.push(sunLight);
 
         const skyParams : SkyParams = 
@@ -125,7 +125,7 @@ export default class Scene
             this.water.GetMesh().transforms.ModelMatrix =  glm.mat4.scale(glm.mat4.create(), this.water.GetMesh().transforms.ModelMatrix, this.water.GetMesh().transforms.Scale);
         })
 
-        Gui.show(true);
+        Gui.show(false);
     }
 
     public Render(ts : number, currentTime : number): void 
