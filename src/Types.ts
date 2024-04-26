@@ -64,7 +64,7 @@ export interface SkyParams
     mieDirectionalG : Ref<number> 
     sunPosition : glm.vec3,
     sunColor: glm.vec3,
-    sunIntensity: number,
+    sunIntensity: Ref<number>,
     up : glm.vec3
 }
 

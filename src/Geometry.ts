@@ -245,7 +245,10 @@ export function GenerateCompletePlane(w : number, h : number, wSegments : number
             vert.push(0.0, 1.0, 0.0);
 
             // Store UV coordinates
-            vert.push(u, v);
+            vert.push(x % 2 ? 0.0 : 1.0);
+            vert.push(y % 2 ? 0.0 : 1.0);
+            // vert.push(u);
+            // vert.push(v);
         }
     }
     

@@ -264,6 +264,7 @@ export class RenderCommand
         RenderCommand.gl.texParameteri(RenderCommand.gl.TEXTURE_2D, RenderCommand.gl.TEXTURE_WRAP_S, RenderCommand.gl.CLAMP_TO_EDGE);
         RenderCommand.gl.texParameteri(RenderCommand.gl.TEXTURE_2D, RenderCommand.gl.TEXTURE_WRAP_T, RenderCommand.gl.CLAMP_TO_EDGE);
         // Set data.
+        RenderCommand.gl.pixelStorei(RenderCommand.gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, RenderCommand.gl.NONE);
         RenderCommand.gl.texImage2D(RenderCommand.ConvertTextureTypeToNative(config.TargetType), config.MipMapLevel, RenderCommand.ConvertImageChannelsToNative(config.NChannels), config.Width, config.Height, 0, RenderCommand.ConvertImageChannelsToNative(config.Format), RenderCommand.ConvertDataSizes(config.DataType), data.val);
     }  
     public static SetTexture2DImage(data : HTMLImageElement) : void 
@@ -272,14 +273,16 @@ export class RenderCommand
         RenderCommand.gl.texParameteri(RenderCommand.gl.TEXTURE_2D, RenderCommand.gl.TEXTURE_MAG_FILTER, RenderCommand.gl.LINEAR);
         RenderCommand.gl.texParameteri(RenderCommand.gl.TEXTURE_2D, RenderCommand.gl.TEXTURE_WRAP_S, RenderCommand.gl.CLAMP_TO_EDGE);
         RenderCommand.gl.texParameteri(RenderCommand.gl.TEXTURE_2D, RenderCommand.gl.TEXTURE_WRAP_T, RenderCommand.gl.CLAMP_TO_EDGE);
+        RenderCommand.gl.pixelStorei(RenderCommand.gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, RenderCommand.gl.NONE);
         RenderCommand.gl.texImage2D(RenderCommand.gl.TEXTURE_2D, 0, RenderCommand.gl.RGB, RenderCommand.gl.RGB, RenderCommand.gl.UNSIGNED_BYTE, data);
-    }
+    }  
     public static SetTexture2DImageHDR(data : TextureImageData) : void 
     {
         RenderCommand.gl.texParameteri(RenderCommand.gl.TEXTURE_2D, RenderCommand.gl.TEXTURE_MIN_FILTER, RenderCommand.gl.LINEAR);
         RenderCommand.gl.texParameteri(RenderCommand.gl.TEXTURE_2D, RenderCommand.gl.TEXTURE_MAG_FILTER, RenderCommand.gl.LINEAR);
         RenderCommand.gl.texParameteri(RenderCommand.gl.TEXTURE_2D, RenderCommand.gl.TEXTURE_WRAP_S, RenderCommand.gl.CLAMP_TO_EDGE);
         RenderCommand.gl.texParameteri(RenderCommand.gl.TEXTURE_2D, RenderCommand.gl.TEXTURE_WRAP_T, RenderCommand.gl.CLAMP_TO_EDGE);
+        RenderCommand.gl.pixelStorei(RenderCommand.gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, RenderCommand.gl.NONE);
         RenderCommand.gl.texImage2D(RenderCommand.gl.TEXTURE_2D, 0, RenderCommand.gl.RGBA32F, data.width, data.height, 0, RenderCommand.gl.RGBA, RenderCommand.gl.FLOAT, new Float32Array(data.data));
     }
     public static SetTextureCubeMapArray(config : ImageConfig, data : Ref<Float32Array>) : void 
@@ -292,11 +295,13 @@ export class RenderCommand
         RenderCommand.gl.texParameteri(RenderCommand.gl.TEXTURE_CUBE_MAP, RenderCommand.gl.TEXTURE_WRAP_T, RenderCommand.gl.CLAMP_TO_EDGE);
         RenderCommand.gl.texParameteri(RenderCommand.gl.TEXTURE_CUBE_MAP, RenderCommand.gl.TEXTURE_WRAP_R, RenderCommand.gl.CLAMP_TO_EDGE);
         // Set data.
+        RenderCommand.gl.pixelStorei(RenderCommand.gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, RenderCommand.gl.NONE);
         for(let i = 0; i < 6; i++)
             RenderCommand.gl.texImage2D(RenderCommand.gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, config.MipMapLevel, RenderCommand.ConvertImageChannelsToNative(config.NChannels), config.Width, config.Height, 0, RenderCommand.ConvertImageChannelsToNative(config.Format), RenderCommand.ConvertDataSizes(config.DataType), data.val);
     }  
     public static SetTextureCubeMapImage(config : ImageConfig, data : HTMLImageElement) : void 
     {
+        RenderCommand.gl.pixelStorei(RenderCommand.gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, RenderCommand.gl.NONE);
         RenderCommand.gl.texImage2D(RenderCommand.ConvertTextureTypeToNative(config.TargetType), config.MipMapLevel, RenderCommand.ConvertImageChannelsToNative(config.NChannels), RenderCommand.ConvertImageChannelsToNative(config.Format), RenderCommand.ConvertDataSizes(config.DataType), data);
     }
     public static GenerateMipMap(type : TextureType) : void 
