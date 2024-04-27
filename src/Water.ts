@@ -1,5 +1,5 @@
 import * as glm from "gl-matrix";
-import { DataSizes, GeometryDrawFunctionTypes, ImageChannels, ImageConfig, TextureType, WaterParams } from "./Types";
+import { DataSizes, GeometryDrawFunctionTypes, ImageChannels, ImageConfig, ImageWrappingTypes, TextureType, WaterParams } from "./Types";
 import { Shader } from "./Shader";
 import { PhysicalMaterial } from "./Material";
 import { Mesh } from "./Mesh";
@@ -33,7 +33,8 @@ export default class Water
             Width: viewportWidth,
             Height: viewportHeight,
             Format: ImageChannels.RGBA,
-            DataType: DataSizes.FLOAT
+            DataType: DataSizes.FLOAT,
+            WrappingType: ImageWrappingTypes.REPEAT
         };
         this.reflectionTex = new Texture2D(imageConfig);
         this.refractionTex = new Texture2D(imageConfig);

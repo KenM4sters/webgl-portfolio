@@ -277,8 +277,8 @@ export class RenderCommand
             RenderCommand.gl.texParameteri(RenderCommand.gl.TEXTURE_2D, RenderCommand.gl.TEXTURE_WRAP_T, RenderCommand.ConvertTextureWrappingType(config.WrappingType));
         } else 
         {
-            RenderCommand.gl.texParameteri(RenderCommand.gl.TEXTURE_2D, RenderCommand.gl.TEXTURE_WRAP_S, RenderCommand.gl.CLAMP_TO_EDGE);
-            RenderCommand.gl.texParameteri(RenderCommand.gl.TEXTURE_2D, RenderCommand.gl.TEXTURE_WRAP_T, RenderCommand.gl.CLAMP_TO_EDGE);
+            RenderCommand.gl.texParameteri(RenderCommand.gl.TEXTURE_2D, RenderCommand.gl.TEXTURE_WRAP_S, RenderCommand.gl.REPEAT);
+            RenderCommand.gl.texParameteri(RenderCommand.gl.TEXTURE_2D, RenderCommand.gl.TEXTURE_WRAP_T, RenderCommand.gl.REPEAT);
         }
         RenderCommand.gl.pixelStorei(RenderCommand.gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, RenderCommand.gl.NONE);
         RenderCommand.gl.texImage2D(RenderCommand.gl.TEXTURE_2D, 0, RenderCommand.gl.RGB, RenderCommand.gl.RGB, RenderCommand.gl.UNSIGNED_BYTE, data);

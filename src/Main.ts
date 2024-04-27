@@ -12,7 +12,7 @@ frontend.Init();
 
 // WebGL Experience.
 const resources = new Resources();
-resources.LoadAllResources(RunWebGL);
+// resources.LoadAllResources(RunWebGL);
 
 function RunWebGL() : void 
 {
