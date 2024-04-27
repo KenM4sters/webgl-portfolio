@@ -84,32 +84,46 @@ vec4 GetNoise(vec2 uv){
 void main(){
 
     // Properties
-    float shininess = 100.0;
+    float shininess = 75.0;
     float spec = 2.0;
     float dif = 0.5;
 
-    vec4 noise = GetNoise(vWorldPosition.xz);
-    // vec4 noise = vec4(texture(normalMap, vUV).rgb, 1.0);
-    vec3 surfaceNormal = normalize(noise.xzy * vec3(2.0, 1.0, 2.0));
-
+    // Intial diffuse and specular shading vectors.
     vec3 diffuse = vec3(0.0);
     vec3 specular = vec3(0.0);
 
-    vec3 worldToEye = cameraPosition-vWorldPosition;
-    vec3 eyeDirection = normalize(worldToEye);
+    // Samples the normal map in a random fashion per fragment shader pass. 
+    vec4 noise = GetNoise(vWorldPosition.xz);
 
-    vec3 sunDirection = normalize(sunPosition - vWorldPosition);
-    vec3 reflection = normalize(reflect(-sunDirection, surfaceNormal));
-    float direction = max(0.0, dot(eyeDirection, reflection));
-    specular += pow(direction, shininess) * sunColor * spec;
-    diffuse += max(dot(sunDirection, surfaceNormal),0.0) * sunColor * dif;
+    // Normalized tangental normal vector.
+    vec3 N = normalize(noise.xzy * vec3(2.0, 1.0, 2.0));
 
-    FragColor = vec4((diffuse + specular + vec3(0.1)) * vec3(0.3, 0.5, 0.9), 1.0);
-    // FragColor = noise;
+    // Normalized vector from the position of the current fragment in World space to the camera's position.
+    vec3 V = normalize(cameraPosition - vWorldPosition);
+
+    // Normalized vector from the position of the current fragment in World space to the Sun's position
+    vec3 L = normalize(sunPosition - vWorldPosition);
+
+    // Inverse square law which reduces the Sun's light intensity with distance from the Sun exponentially. 
+    // (double the distance = 1/4 of the light intensity).
+    float attentuation = 1.0 / (pow(length(sunPosition - vWorldPosition), 2.0));
+
+    // The vector to the Sun from the current fragment reflected around the normal at the current fragment. 
+    vec3 reflection = normalize(reflect(-L, N));
+
+    // cos(theta) of the angle between the camera and the reflection vector.
+    // The higher this direction is, the more parallel the camera's view direction is to the reflection
+    // vector, and thus more specular reflection should be observed. 
+    // (cos(0) = 1).
+    float direction = max(0.0, dot(V, reflection));
+
+    // Final specular and diffuse shadings.
+    specular += pow(direction, shininess) * sunColor * sunIntensity * attentuation * spec;
+    diffuse += max(dot(L, N),0.0) * sunColor * dif;
+
+    // Final output color.
+    const vec3 blueishColor = vec3(0.3, 0.5, 0.9); // Water reflects the color of its surroundings.
+    const vec3 AO = vec3(0.1); // To stop the water going completely black in the absence of any light.
+
+    FragColor = vec4((diffuse + specular + AO) * blueishColor, 1.0);
 }
-
-// Inverse gamma correction
-// normal = pow(normal, vec3(2.2));
-// Convert the color values to the range [-1, 1]
-// normal = normal * 2.0 - 1.0;
-// normal = vNormalMatrix * normal;

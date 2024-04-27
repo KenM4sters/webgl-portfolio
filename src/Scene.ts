@@ -19,6 +19,7 @@ import skyFragSrc from "./Shaders/Sky.frag?raw";
 import Water from "./Water";
 import Sky from "./Sky";
 import AppStateListener, { ApplicationStates } from "./AppStateListener";
+import { Animator } from "./Frontend";
 
 
 export default class Scene extends AppStateListener
@@ -76,7 +77,7 @@ export default class Scene extends AppStateListener
             mieDirectionalG: {val: 0.99} ,
             sunPosition: {val: glm.vec3.fromValues(0.0, 45.0, -200.0)},
             sunColor: {val: glm.vec3.fromValues(1.0, 1.0, 1.0)},
-            sunIntensity: {val: 10000},
+            sunIntensity: {val: 50000},
             up: {val: glm.vec3.fromValues(0, 1, 0)} 
         };
 
@@ -294,17 +295,17 @@ export default class Scene extends AppStateListener
         let params = this.sky.GetParams();
         if(newState == ApplicationStates.VIEWING_PROJECTS) 
         {
-            params.rayleigh.val = 4.0;
-            params.mieCoefficient.val = 0.1;
-            params.mieDirectionalG.val = 0.7;
-            params.sunPosition.val = [0.0, 4.0, -200.0];
+            Animator.LerpVec3(params.sunPosition, glm.vec3.fromValues(0.0, 4.0, -250.0), 3000);
+            Animator.LerpFloat(params.rayleigh, 4.0, 2000);
+            Animator.LerpFloat(params.mieCoefficient, 0.1, 2000);
+            Animator.LerpFloat(params.mieDirectionalG, 0.7, 2000);
 
         } else 
         {
-            params.rayleigh.val = 0.16;
-            params.mieCoefficient.val = 0.03;
-            params.mieDirectionalG.val = 0.99;
-            params.sunPosition.val  = [0.0, 45.0, -200.0];
+            Animator.LerpVec3(params.sunPosition, glm.vec3.fromValues(0.0, 45.0, -200.0), 3000);
+            Animator.LerpFloat(params.rayleigh, 0.16, 2000);
+            Animator.LerpFloat(params.mieCoefficient, 0.03, 2000);
+            Animator.LerpFloat(params.mieDirectionalG, 0.99, 2000);
         }
     }
 
