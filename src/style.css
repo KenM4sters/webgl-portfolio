@@ -172,12 +172,12 @@ body
 
 .FadeIn 
 {
-  animation: FadeIn 1s ease-in-out forwards;
+  animation: FadeIn 2s ease-in-out 1s forwards;
 }
 
 .FadeOut 
 {
-  animation: FadeIn 1s ease-in-out forwards reverse;
+  animation: FadeIn 2s ease-in-out forwards reverse;
 }
 
 

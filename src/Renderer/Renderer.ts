@@ -3,6 +3,7 @@ import { RenderCommand } from "../RenderCommand";
 import Scene from "../Scene";
 import { TextureType } from "../Types";
 import { PostProcessor } from "./PostProcessor";
+import Cursor from "../Cursor";
 
 export default class Renderer
 {
@@ -16,7 +17,7 @@ export default class Renderer
         this.postProcessor.Init(gui);
     }
 
-    Render(scene : Scene, ts : number, currrentTime : number) : void 
+    Render(scene : Scene, cursor : Cursor, ts : number, currrentTime : number) : void 
     {
         // Set Framebuffer.
         if(scene.output.target) 
@@ -37,6 +38,7 @@ export default class Renderer
         RenderCommand.SetClearColor([0.01, 0.01, 0.01, 1.0]);
 
         scene.Render(ts, currrentTime);
+        cursor.Render();
         
         // Cleanup.
         if(scene.output.target?.GetFBO()) RenderCommand.UnbindFramebuffer();

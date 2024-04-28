@@ -1,3 +1,5 @@
+import { call } from "three/examples/jsm/nodes/Nodes.js";
+import { Animator } from "./Frontend";
 
 export enum KEYS 
 {
@@ -23,7 +25,7 @@ export default class Input
 {
     constructor() {}
 
-    public ListenToEvents() : void 
+    public ListenToEvents(callback: (posX : number, posY : number) => void) : void 
     {
         window.addEventListener("keydown", (event : KeyboardEvent) => 
         {
@@ -33,6 +35,16 @@ export default class Input
         window.addEventListener("keyup", (event : KeyboardEvent) => 
         {
             keys[event.key] = false;
+        });
+
+        window.addEventListener("mousemove", (e) => 
+        {
+            let newPos = Animator.ConvertPosToNative(e.clientX, e.clientY);
+            console.log(newPos);
+            
+            newPos.x = newPos.x / window.innerWidth;
+            newPos.y = newPos.y / window.innerHeight;
+            callback(newPos.x, newPos.y);
         });
 
     }

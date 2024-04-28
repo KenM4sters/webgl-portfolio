@@ -11,6 +11,7 @@ import App from "./App";
 import Renderer from "./Renderer/Renderer";
 import Scene from "./Scene";
 import Input from "./Input";
+import Cursor from "./Cursor";
 
 var lastFrame : number = performance.now();
 
@@ -32,9 +33,10 @@ export default class Animus extends App
         this.gui = new GUI();
         this.renderer = new Renderer();
         this.input = new Input();
+        this.cursor = new Cursor();
         
         this.Resize();
-        this.input.ListenToEvents();
+        this.input.ListenToEvents(this.cursor.OnMouseMove);
         this.scene.Init(this.gui, this.windowWidth, this.windowHeight);
         this.renderer.Init(this.gui);
     }
@@ -44,7 +46,7 @@ export default class Animus extends App
         const currentFrame : number = performance.now();
         const ts : number = (currentFrame - lastFrame) * 0.001;
         lastFrame = currentFrame;
-        this.renderer.Render(this.scene, ts, currentFrame);
+        this.renderer.Render(this.scene, this.cursor, ts, currentFrame);
         
         window.requestAnimationFrame(() => this.Run());
     }
@@ -82,5 +84,6 @@ export default class Animus extends App
     private gui !: GUI;
     private renderer !: Renderer;
     private input !: Input;
+    private cursor !: Cursor;
 
 };
