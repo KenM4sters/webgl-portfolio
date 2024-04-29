@@ -29,16 +29,21 @@ export default class Sandbox extends App
 
     public Init() : void 
     {
+        function isMobile() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        }
+        
         this.scene = new Scene();
         this.gui = new GUI();
         this.renderer = new Renderer();
-        this.cursor = new Cursor();
+        if(!isMobile())
+            this.cursor = new Cursor();
         this.input = new Input();
         
         this.Resize();
         this.scene.Init(this.gui, this.windowWidth, this.windowHeight);
         this.renderer.Init(this.gui);
-        this.input.ListenToEvents(this.cursor.OnMouseMove, this.scene.camera);
+        this.input.ListenToEvents(isMobile(), this.cursor.OnMouseMove, this.scene.camera);
     }
 
     public override Run() : void

@@ -24,7 +24,7 @@ export default class Input
 {
     constructor() {}
 
-    public ListenToEvents(callback: (pos : {x : number, y : number}) => void, camera : PerspectiveCamera) : void 
+    public ListenToEvents(isMobile : boolean, callback: (pos : {x : number, y : number}) => void, camera : PerspectiveCamera) : void 
     {
         window.addEventListener("keydown", (event : KeyboardEvent) => 
         {
@@ -45,7 +45,7 @@ export default class Input
                 y: e.clientY 
             }
             
-            callback(newPos);
+            if(!isMobile) callback(newPos);
             camera.OnMouseMove(newPos, true);
         });
 
