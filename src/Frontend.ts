@@ -28,17 +28,24 @@ export default class Frontend extends AppStateListener
         this.canvas = canvas;
     }
 
-    public Init() : void 
+    public InitPreloader() : void 
     {
-        this.canvas.style.backgroundColor = "rgba(5, 100, 100, 255)";
+        this.canvas.style.backgroundColor = "rgba(10, 10, 10, 255)";
+        const landing = document.querySelector(".landing");
+        if(!landing) throw new Error("Failed to get landing from DOM | body");
+        landing.innerHTML = `<div class="preloader"></div>`;
+        
+    }
+
+    public InitFrontend() : void 
+    {
         const landing = document.querySelector(".landing");
         if(!landing) throw new Error("Failed to get landing from DOM | body");
         landing.innerHTML = frontendSrc;
-
-        this.RenderNavIcon();
+        this.RenderFrontend();
     }
 
-    private RenderNavIcon() : void 
+    private RenderFrontend() : void 
     {
         this.elements = {
             Intro: 

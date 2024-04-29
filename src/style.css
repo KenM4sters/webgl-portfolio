@@ -33,6 +33,21 @@ body
 }
 
 /*
+** Preloader
+*/
+
+.preloader 
+{
+  position: absolute;
+  left: 50%;
+  top: 48%;
+  animation: FadeIn 0.8s linear 0s infinite forwards;
+  width: 1%;
+  height: 4%;
+  background-color: whitesmoke;
+}
+
+/*
 ** Landing Page
 */
 
