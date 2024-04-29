@@ -1,5 +1,4 @@
-import { call } from "three/examples/jsm/nodes/Nodes.js";
-import { Animator } from "./Frontend";
+import PerspectiveCamera from "./Camera/PerspectiveCamera";
 
 export enum KEYS 
 {
@@ -25,7 +24,7 @@ export default class Input
 {
     constructor() {}
 
-    public ListenToEvents(callback: (posX : number, posY : number) => void) : void 
+    public ListenToEvents(callback: (pos : {x : number, y : number}) => void, camera : PerspectiveCamera) : void 
     {
         window.addEventListener("keydown", (event : KeyboardEvent) => 
         {
@@ -39,12 +38,15 @@ export default class Input
 
         window.addEventListener("mousemove", (e) => 
         {
-            let newPos = Animator.ConvertPosToNative(e.clientX, e.clientY);
-            console.log(newPos);
             
-            newPos.x = newPos.x / window.innerWidth;
-            newPos.y = newPos.y / window.innerHeight;
-            callback(newPos.x, newPos.y);
+            let newPos : {x : number, y : number} = 
+            {
+                x: e.clientX,
+                y: e.clientY 
+            }
+            
+            callback(newPos);
+            camera.OnMouseMove(newPos, true);
         });
 
     }

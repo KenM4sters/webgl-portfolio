@@ -38,6 +38,33 @@ export class SquareGeometry extends Geometry
         this.vertexArray = new VertexArray(VBO, EBO);
     }
 };
+export class CustomGeometry extends Geometry
+{
+    constructor(vertices : Float32Array, attributes : BufferAttribute[] = []) 
+    {
+        super();
+
+        var elements : BufferAttribute[];
+        if(!attributes.length) 
+        {
+            elements = new Array<BufferAttribute>(
+                new BufferAttribute(ShaderDataType.Float3, "aPosition"),
+                new BufferAttribute(ShaderDataType.Float3, "aNormal"),
+                new BufferAttribute(ShaderDataType.Float2, "aUV")
+            );
+        } else 
+        {
+            elements = attributes;
+        }
+
+        var layout : BufferAttribLayout = new BufferAttribLayout(elements);
+        var VBO = new VertexBuffer(vertices);
+        VBO.SetLayout(layout);
+        var EBO = new IndexBuffer(SQUARE_INDICES);
+        this.drawFunction.type = GeometryDrawFunctionTypes.DRAW_ARRAYS_INDEXED;
+        this.vertexArray = new VertexArray(VBO, EBO);
+    }
+};
 
 export class CubeGeometry extends Geometry
 {

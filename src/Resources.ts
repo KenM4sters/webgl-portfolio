@@ -16,7 +16,8 @@ export default class Resources
             {
                 const IMG = new Image();
                 IMG.src = r.path;  
-                            
+                IMG.style.transform = `'rotateY(180deg)'`;
+                
                 IMG.addEventListener("load", () => {
                     Resources.textures.set(r.name, IMG);
                     this.UpdateStatus(callback);
@@ -35,7 +36,7 @@ export default class Resources
     private UpdateStatus(callback: () => void) : void 
     {
         Resources.status += 1;
-        if(Resources.status = sources.length) 
+        if(Resources.status == sources.length) 
         {
             callback();
         }
@@ -47,11 +48,16 @@ export default class Resources
     private static status : number = 0;
 }
 
-export const sources : {name: string, type: string, path: string}[] = 
+const sources : {name: string, type: string, path: string}[] = 
 [
     {
         name: "waterNormal",
         type: "LDR",
         path: "/Textures/waterNormals.jpg"
+    },
+    {
+        name: "kenSpriteSheet",
+        type: "LDR",
+        path: "/Textures/Ken.png"
     },
 ]

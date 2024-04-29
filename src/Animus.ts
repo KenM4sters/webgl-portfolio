@@ -32,13 +32,13 @@ export default class Animus extends App
         this.scene = new Scene();
         this.gui = new GUI();
         this.renderer = new Renderer();
-        this.input = new Input();
         this.cursor = new Cursor();
+        this.input = new Input();
         
         this.Resize();
-        this.input.ListenToEvents(this.cursor.OnMouseMove);
         this.scene.Init(this.gui, this.windowWidth, this.windowHeight);
         this.renderer.Init(this.gui);
+        this.input.ListenToEvents(this.cursor.OnMouseMove, this.scene.camera);
     }
 
     public override Run() : void

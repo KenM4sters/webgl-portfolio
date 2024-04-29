@@ -3,9 +3,19 @@ precision highp float;
 
 out vec4 FragColor;
 
+in vec3 vWorldPosition;
+in vec3 vNormal;
+in vec2 vUV;
+
 uniform sampler2D spriteSheet;
 
 void main() 
 {
-    FragColor = vec4(10.0, 0.1, 0.1, 1.0);
+    vec3 texColor = texture(spriteSheet, vUV).rgb;
+
+    if(texColor.r < 0.05) 
+    {
+        discard;
+    } FragColor = vec4(texColor, 1.0);
+
 }

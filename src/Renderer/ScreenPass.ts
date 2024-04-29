@@ -10,6 +10,7 @@ import { Ref, RenderTarget, TextureType } from "../Types";
 import { PostProcessor } from "./PostProcessor";
 import GUI from "lil-gui";
 import AppStateListener, { ApplicationStates } from "../AppStateListener";
+import { Animator } from "../Frontend";
 
 export abstract class RenderPass extends AppStateListener
 {
@@ -105,6 +106,8 @@ export class ScreenPass extends RenderPass
 
     protected HandleChangeInState(newState: ApplicationStates): void 
     {
+        newState == ApplicationStates.VIEWING_PROJECTS ? Animator.LerpFloat(this.exposure, 0.4, 3000)
+            : Animator.LerpFloat(this.exposure, 0.7, 3000);
     }
 
     bloomStrength : Ref<number> = {val: 0.0};

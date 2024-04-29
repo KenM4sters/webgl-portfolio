@@ -29,6 +29,7 @@ export class RenderCommand
     public static SubmitContext(context : WebGL2RenderingContext) {RenderCommand.gl = context};
 
     private static gl : WebGL2RenderingContext;
+
     // Create Buffer
     public static CreateVertexBuffer(vertices : Float32Array) : VertexBuffer 
     {
@@ -39,14 +40,14 @@ export class RenderCommand
         return new IndexBuffer(indices)
     }
 
-    // Bind Buffer
     public static CreateBuffer() : WebGLBuffer 
     {
         const Id = RenderCommand.gl.createBuffer();
         if(!Id) throw new Error("RenderCommand | Failed to create buffer!");
         return Id;
     }
-
+    
+    // Bind Buffer
     public static BindBuffer(Id : Ref<WebGLBuffer | null>, type : BufferType) : void { 
         if(Id.val && type == BufferType.Vertex) RenderCommand.gl.bindBuffer(RenderCommand.gl.ARRAY_BUFFER, Id.val) 
         else if(Id.val && type == BufferType.Index) RenderCommand.gl.bindBuffer(RenderCommand.gl.ELEMENT_ARRAY_BUFFER, Id.val);
@@ -676,5 +677,11 @@ export class RenderCommand
         return 0;
     }
 
+    // Temporary functions that shouldn't really be here, but I made the choice (perhaps wrongly)
+    // of limiting the WebGL context to the RenderCommand - probably should only be done for a hardcore
+    // engine.
+    public static MakeSeperateBuffer(b : {buffer : Ref<WebGLBuffer>, data : number[]}) : void
+    {
+    } 
 
 };

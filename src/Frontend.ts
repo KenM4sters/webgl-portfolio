@@ -1,6 +1,6 @@
 import * as glm from "gl-matrix";
 import frontendSrc from "../frontend.html?raw";
-import AppStateListener, { ApplicationStates, State } from "./AppStateListener";
+import AppStateListener, { ApplicationStates } from "./AppStateListener";
 import { Ref } from "./Types";
 
 
@@ -57,28 +57,233 @@ export default class Frontend extends AppStateListener
             Links: document.querySelector(".links_container") as HTMLElement,
         };
 
-
         if(!this.elements.Intro.Header) throw new Error("Failed to get navbar icon from DOM!");
         if(!this.elements.Intro.SubHeader) throw new Error("Failed to get navbar icon from DOM!");
         if(!this.elements.NavIcon.Container) throw new Error("Failed to get navbar icon from DOM!");
         if(!this.elements.NavIcon.Bar1) throw new Error("Failed to get navbar icon from DOM!");
         if(!this.elements.NavIcon.Bar2) throw new Error("Failed to get navbar icon from DOM!");
         if(!this.elements.NavIcon.Bar3) throw new Error("Failed to get navbar icon from DOM!");
-
+        if(!this.elements.Links) throw new Error("Failed to get links cotnainer from DOM!");
 
         this.projectsWindow = document.querySelector(".projects_container") as HTMLElement;
         if(!this.projectsWindow) throw new Error("Failed to get projects panel from DOM!");
 
-        this.elements.NavIcon.Container.addEventListener("click", (e) => 
+        this.elements.NavIcon.Container.addEventListener("click", () => 
         {
             this.ToggleNavIcon();
         })
 
+        const githubLink = document.querySelector(".fa-square-github") as HTMLElement;
+        const discordLink = document.querySelector(".fa-discord") as HTMLElement;
+        const emailLink = document.querySelector(".fa-envelope") as HTMLElement;
+
+        if(!githubLink) throw new Error("Failed to get github link from DOM!");
+        if(!discordLink) throw new Error("Failed to get discord link from DOM!");
+        if(!emailLink) throw new Error("Failed to get email link from DOM!");
+
+        const portfolioWrapper = document.querySelector(".portfolioWrapper") as HTMLElement;
+        const pbrRendererWrapper = document.querySelector(".pbrRendererWrapper") as HTMLElement;
+        const terrainEngineWrapper = document.querySelector(".terrainEngineWrapper") as HTMLElement;
+        const raytracerWrapper = document.querySelector(".raytracerWrapper") as HTMLElement;
+        const cGameWrapper = document.querySelector(".cGameWrapper") as HTMLElement;
+        const vulkanEngineWrapper = document.querySelector(".vulkanEngineWrapper") as HTMLElement;
+        const fullstackReactAppWrapper = document.querySelector(".fullstackReactAppWrapper") as HTMLElement;
+        const gravitySimulatorWrapper = document.querySelector(".gravitySimulatorWrapper") as HTMLElement;
+
+        if(!portfolioWrapper) throw new Error("Failed to get projectWrapper from DOM!");
+        if(!pbrRendererWrapper) throw new Error("Failed to get projectWrapper from DOM!");
+        if(!terrainEngineWrapper) throw new Error("Failed to get projectWrapper from DOM!");
+        if(!raytracerWrapper) throw new Error("Failed to get projectWrapper from DOM!");
+        if(!cGameWrapper) throw new Error("Failed to get projectWrapper from DOM!");
+        if(!vulkanEngineWrapper) throw new Error("Failed to get projectWrapper from DOM!");
+        if(!fullstackReactAppWrapper) throw new Error("Failed to get projectWrapper from DOM!");
+        if(!gravitySimulatorWrapper) throw new Error("Failed to get projectWrapper from DOM!");
+
+
+        // Event listenerrs for each Github link.
+        githubLink.addEventListener("mouseenter", () => 
+        {
+            githubLink.style.color = `#ff4500`;
+        })
+        githubLink.addEventListener("mouseleave", () => 
+        {
+            githubLink.style.color = `#153c6b`;
+        })
+        discordLink.addEventListener("mouseenter", () => 
+        {
+            discordLink.style.color = `#ff4500`;
+        })
+        discordLink.addEventListener("mouseleave", () => 
+        {
+            discordLink.style.color = `#153c6b`;
+        })
+        emailLink.addEventListener("mouseenter", () => 
+        {
+            emailLink.style.color = `#ff4500`;
+        })
+        emailLink.addEventListener("mouseleave", () => 
+        {
+            emailLink.style.color = `#153c6b`;
+        })
+
+        // Event listeners for each indivdiual project.
+        portfolioWrapper.addEventListener("mouseenter", () => 
+        {
+            const descrption = portfolioWrapper.children[1];
+            if(descrption instanceof HTMLElement) 
+            {
+                descrption.classList.add("FadeIn");
+                descrption.children[1].children[0].classList.add("FadeIn");
+            }    
+        })
+        portfolioWrapper.addEventListener("mouseleave", () => 
+        {
+            const descrption = portfolioWrapper.children[1];
+            if(descrption instanceof HTMLElement) 
+            {
+                descrption.classList.remove("FadeIn");
+                descrption.children[1].children[0].classList.remove("FadeIn");
+
+            } 
+        })
+        pbrRendererWrapper.addEventListener("mouseenter", () => 
+        {
+            const descrption = pbrRendererWrapper.children[1];
+            if(descrption instanceof HTMLElement) 
+            {
+                descrption.classList.add("FadeIn");
+                descrption.children[1].children[0].classList.add("FadeIn");
+            }    
+        })
+        pbrRendererWrapper.addEventListener("mouseleave", () => 
+        {
+            const descrption = pbrRendererWrapper.children[1];
+            if(descrption instanceof HTMLElement) 
+            {
+                descrption.classList.remove("FadeIn");
+                descrption.children[1].children[0].classList.remove("FadeIn");
+
+            } 
+        })
+        terrainEngineWrapper.addEventListener("mouseenter", () => 
+        {
+            const descrption = terrainEngineWrapper.children[1];
+            if(descrption instanceof HTMLElement) 
+            {
+                descrption.classList.add("FadeIn");
+                descrption.children[1].children[0].classList.add("FadeIn");
+            }    
+        })
+        terrainEngineWrapper.addEventListener("mouseleave", () => 
+        {
+            const descrption = terrainEngineWrapper.children[1];
+            if(descrption instanceof HTMLElement) 
+            {
+                descrption.classList.remove("FadeIn");
+                descrption.children[1].children[0].classList.remove("FadeIn");
+
+            } 
+        })
+        vulkanEngineWrapper.addEventListener("mouseenter", () => 
+        {
+            const descrption = vulkanEngineWrapper.children[1];
+            if(descrption instanceof HTMLElement) 
+            {
+                descrption.classList.add("FadeIn");
+                descrption.children[1].children[0].classList.add("FadeIn");
+            }    
+        })
+        vulkanEngineWrapper.addEventListener("mouseleave", () => 
+        {
+            const descrption = vulkanEngineWrapper.children[1];
+            if(descrption instanceof HTMLElement) 
+            {
+                descrption.classList.remove("FadeIn");
+                descrption.children[1].children[0].classList.remove("FadeIn");
+
+            } 
+        })
+        cGameWrapper.addEventListener("mouseenter", () => 
+        {
+            const descrption = cGameWrapper.children[1];
+            if(descrption instanceof HTMLElement) 
+            {
+                descrption.classList.add("FadeIn");
+                descrption.children[1].children[0].classList.add("FadeIn");
+            }    
+        })
+        cGameWrapper.addEventListener("mouseleave", () => 
+        {
+            const descrption = cGameWrapper.children[1];
+            if(descrption instanceof HTMLElement) 
+            {
+                descrption.classList.remove("FadeIn");
+                descrption.children[1].children[0].classList.remove("FadeIn");
+
+            } 
+        })
+        raytracerWrapper.addEventListener("mouseenter", () => 
+        {
+            const descrption = raytracerWrapper.children[1];
+            if(descrption instanceof HTMLElement) 
+            {
+                descrption.classList.add("FadeIn");
+                descrption.children[1].children[0].classList.add("FadeIn");
+            }    
+        })
+        raytracerWrapper.addEventListener("mouseleave", () => 
+        {
+            const descrption = raytracerWrapper.children[1];
+            if(descrption instanceof HTMLElement) 
+            {
+                descrption.classList.remove("FadeIn");
+                descrption.children[1].children[0].classList.remove("FadeIn");
+
+            } 
+        })
+        fullstackReactAppWrapper.addEventListener("mouseenter", () => 
+        {
+            const descrption = fullstackReactAppWrapper.children[1];
+            if(descrption instanceof HTMLElement) 
+            {
+                descrption.classList.add("FadeIn");
+                descrption.children[1].children[0].classList.add("FadeIn");
+            }    
+        })
+        fullstackReactAppWrapper.addEventListener("mouseleave", () => 
+        {
+            const descrption = fullstackReactAppWrapper.children[1];
+            if(descrption instanceof HTMLElement) 
+            {
+                descrption.classList.remove("FadeIn");
+                descrption.children[1].children[0].classList.remove("FadeIn");
+
+            } 
+        })
+        gravitySimulatorWrapper.addEventListener("mouseenter", () => 
+        {
+            const descrption = gravitySimulatorWrapper.children[1];
+            if(descrption instanceof HTMLElement) 
+            {
+                descrption.classList.add("FadeIn");
+                descrption.children[1].children[0].classList.add("FadeIn");
+            }    
+        })
+        gravitySimulatorWrapper.addEventListener("mouseleave", () => 
+        {
+            const descrption = gravitySimulatorWrapper.children[1];
+            if(descrption instanceof HTMLElement) 
+            {
+                descrption.classList.remove("FadeIn");
+                descrption.children[1].children[0].classList.remove("FadeIn");
+            } 
+        })
     }
 
     private ToggleNavIcon() : void 
     {
-        if (this.GetCurrentAppState() == ApplicationStates.VIEWING_PROJECTS) {
+        if (this.GetCurrentAppState() == ApplicationStates.VIEWING_PROJECTS) 
+        {
             this.elements.NavIcon.Bar1.style.transform = `rotate(0deg) translate(0px, 0px)`;
             this.elements.NavIcon.Bar2.style.display = ``;
             this.elements.NavIcon.Bar3.style.transform = `rotate(0deg) translate(0px, 0px)`;
@@ -96,8 +301,8 @@ export default class Frontend extends AppStateListener
         if(newState == ApplicationStates.VIEWING_PROJECTS) 
         {
             // Projects Window
-            this.projectsWindow.classList.remove("FadeOut");
             this.projectsWindow.classList.add("FadeIn");
+            this.projectsWindow.style.visibility = "visible";
             // Intro
             let targetX = -window.innerWidth - 1500;
             let targetY = 0;
@@ -113,7 +318,8 @@ export default class Frontend extends AppStateListener
         {
             // Projects Window
             this.projectsWindow.classList.remove("FadeIn");
-            this.projectsWindow.classList.add("FadeOut");
+            this.projectsWindow.style.visibility = "hidden";
+            
             // Intro
             let targetX = -(window.innerWidth / 2) + 45;
             let targetY = 0;
@@ -127,12 +333,10 @@ export default class Frontend extends AppStateListener
         }
     }
 
-    canvas: HTMLCanvasElement;
+    canvas : HTMLCanvasElement;
     projectsWindow !: HTMLElement;
     elements !: Elements;
 }
-
-
 
 export abstract class Animator 
 {
@@ -153,12 +357,8 @@ export abstract class Animator
             if (progress <= duration) {
                 const newPosX = Animator.Lerp(transformedPos.left, target.x, duration, progress);
                 const newPosY = Animator.Lerp(transformedPos.top, target.y, duration, progress);
-                
-                console.log(rawPos);
-                console.log(newPosX, newPosY);
-                
-                
-                element.style.transform = `translate(${newPosX - rawPos.left}px, ${newPosY - transformedPos.top}px)`;  
+                                
+                element.style.transform = `translate(${newPosX - rawPos.left}px, 0px)`;  
                 
                 requestAnimationFrame(() => Animate());
             }
@@ -170,12 +370,6 @@ export abstract class Animator
     {   
 
         const startTime = performance.now();
-        const distance : {x : number, y: number, z : number} = 
-        {
-            x: target[0] - pos.val[0],
-            y: target[1] - pos.val[1],
-            z: target[2] - pos.val[2],
-        }
         let startPos = {...pos};
 
         function Animate() : void
@@ -198,10 +392,6 @@ export abstract class Animator
     {   
 
         const startTime = performance.now();
-        const distance : {val : number} = 
-        {
-            val: target - pos.val
-        }
         let startPos = {...pos};
 
         function Animate() : void
@@ -244,6 +434,19 @@ export abstract class Animator
         {
             x: posX + (window.innerWidth / 2),
             y: posY + (window.innerHeight / 2)
+        }
+
+        return newPos;
+    }
+
+    // Takes a posX and posY in window coordinates (top-left = 0,0) and converts them
+    // to sclip space coordinates in WebGL (-1.0 <-> 1.0)
+    public static ConvertPosToWebGL(posX : number, posY : number) : {x: number, y: number} 
+    {
+        let newPos : {x: number, y: number} = 
+        {
+            x: (posX / window.innerWidth) * 2 - 1, 
+            y: -((posY / window.innerHeight) * 2 - 1)
         }
 
         return newPos;
