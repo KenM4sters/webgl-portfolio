@@ -4,14 +4,13 @@ import { Mesh } from "./Mesh";
 import { PlaneGeometry, SphereGeometry } from "./Geometry";
 import { PhysicalMaterial } from "./Material";
 import { Shader } from "./Shader";
-import { Light, PointLight } from "./Light";
-import { DataSizes, ImageChannels, ImageConfig, ImageWrappingTypes, RenderTarget, SkyParams, TextureType, WaterParams } from "./Types";
+import { Light } from "./Light";
+import { DataSizes, ImageChannels, ImageConfig, ImageWrappingTypes, RenderTarget, SkyParams, TextureType } from "./Types";
 import { RenderCommand } from "./RenderCommand";
 import Input from "./Input";
 import PerspectiveCamera, { CameraDirections } from "./Camera/PerspectiveCamera";
 import Framebuffer from "./Framebuffer";
 import { Texture2D } from "./Texture";
-import Environment from "./Environment";
 
 // Shaders
 import skyVertSrc from "./Shaders/Sky.vert?raw";
@@ -60,8 +59,7 @@ export default class Scene extends AppStateListener
 
         // Water. 
         var waterGeo = new PlaneGeometry(1000, 1000, 10, 10);
-        const waterParams : WaterParams = {};
-        this.water = new Water(waterGeo, this.camera, waterParams, w, h);
+        this.water = new Water(waterGeo, this.camera, w, h);
 
         // Sky.
         const skyGeo = new SphereGeometry(100, 100, 100);
@@ -312,7 +310,6 @@ export default class Scene extends AppStateListener
     public meshes : Array<Mesh> = new Array<Mesh>();
     public lights : Array<Light> = new Array<Light>();
     public camera !: PerspectiveCamera; 
-    public environment !: Environment;
     public sky !: Sky;
     public output !: RenderTarget;
     public water !: Water;

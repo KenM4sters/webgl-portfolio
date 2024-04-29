@@ -1,5 +1,5 @@
 import * as glm from "gl-matrix"
-import { CustomGeometry, SquareGeometry } from "./Geometry";
+import { CustomGeometry } from "./Geometry";
 import { PhysicalMaterial } from "./Material";
 import { Mesh } from "./Mesh";
 
@@ -7,7 +7,7 @@ import { Mesh } from "./Mesh";
 import vertSrc from "./Shaders/KenMasters.vert?raw";
 import fragSrc from "./Shaders/KenMasters.frag?raw";
 import { Shader } from "./Shader";
-import { BufferType, RenderCommand } from "./RenderCommand";
+import { RenderCommand } from "./RenderCommand";
 import { Animator } from "./Frontend";
 import { Ref, TextureType } from "./Types";
 import { Texture2D } from "./Texture";
@@ -63,7 +63,7 @@ export default class Cursor
     } 
 
     private mesh : Mesh;
-    private texCoordsBuffer !: {buffer : Ref<WebGLBuffer>, data : Float32Array};
-    private VAO !: Ref<WebGLVertexArrayObject>;
+    // private texCoordsBuffer !: {buffer : Ref<WebGLBuffer>, data : Float32Array};
+    // private VAO !: Ref<WebGLVertexArrayObject>;
     public static transformObj : Ref<glm.vec3>;
 };

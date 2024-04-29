@@ -4,7 +4,7 @@ import { SquareGeometry } from "../Geometry";
 import { BufferType, RenderCommand } from "../RenderCommand";
 import { Shader } from "../Shader";
 import { Texture2D } from "../Texture";
-import { FunctionEquationTypes, BlendFunctionTypes, ColorAttachments, DataSizes, ImageChannels, ImageConfig, Ref, RenderTarget, TextureType, ImageWrappingTypes } from "../Types";
+import { FunctionEquationTypes, BlendFunctionTypes, ColorAttachments, DataSizes, ImageChannels, ImageConfig, RenderTarget, TextureType, ImageWrappingTypes } from "../Types";
 import { RenderPass } from "./ScreenPass";
 import { PostProcessor } from "./PostProcessor";
 
@@ -25,6 +25,8 @@ export default class BloomPass extends RenderPass
     }
 
     Init(gui : GUI): void {
+        // gui
+        gui.addFolder("Bloom");
 
         this.shader = new Shader(rawVert, rawFrag);
         RenderCommand.UseShader(this.shader.GetId());
@@ -96,7 +98,6 @@ export default class BloomPass extends RenderPass
     }
 
     Render(prevTarget: RenderTarget): RenderTarget {
-
         // Get the source HDR scene texture from renderer and make sure it's valid.
         const EBO = this.quad.vertexArray.GetIndexBuffer();
         const VAO = this.quad.vertexArray.GetId();

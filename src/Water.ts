@@ -1,5 +1,5 @@
 import * as glm from "gl-matrix";
-import { DataSizes, GeometryDrawFunctionTypes, ImageChannels, ImageConfig, ImageWrappingTypes, TextureType, WaterParams } from "./Types";
+import { DataSizes, GeometryDrawFunctionTypes, ImageChannels, ImageConfig, ImageWrappingTypes, TextureType } from "./Types";
 import { Shader } from "./Shader";
 import { PhysicalMaterial } from "./Material";
 import { Mesh } from "./Mesh";
@@ -18,7 +18,7 @@ import Resources from "./Resources";
 
 export default class Water 
 {
-    constructor(plane : PlaneGeometry, camera : PerspectiveCamera, params : WaterParams, viewportWidth : number, viewportHeight : number) 
+    constructor(plane : PlaneGeometry, camera : PerspectiveCamera, viewportWidth : number, viewportHeight : number) 
     {
         const shader = new Shader(vertSrc, fragSrc);
         const mat = new PhysicalMaterial(shader);

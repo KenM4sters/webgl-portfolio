@@ -356,7 +356,7 @@ export abstract class Animator
             
             if (progress <= duration) {
                 const newPosX = Animator.Lerp(transformedPos.left, target.x, duration, progress);
-                const newPosY = Animator.Lerp(transformedPos.top, target.y, duration, progress);
+                // const newPosY = Animator.Lerp(transformedPos.top, target.y, duration, progress);
                                 
                 element.style.transform = `translate(${newPosX - rawPos.left}px, 0px)`;  
                 

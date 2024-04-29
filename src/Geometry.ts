@@ -2,8 +2,6 @@ import { BufferAttribLayout, BufferAttribute, IndexBuffer, VertexBuffer } from "
 import { GeometryDrawFunction, GeometryDrawFunctionShapes, GeometryDrawFunctionTypes, ShaderDataType } from "./Types";
 import { CUBE_VERTICES_COMPLETE, LARGE_SQUARE_VERTCES_COMPLETE, SQUARE_INDICES } from "./Primitives";
 import VertexArray from "./VertexArray";
-import { log } from "three/examples/jsm/nodes/Nodes.js";
-
 
 export abstract class Geometry 
 {
@@ -176,7 +174,7 @@ export function GenerateCompleteSphere(radius: number, stackCount: number, secto
     const vert: number[] = [];
     const ind: number[] = [];
 
-    let x, y, z, xy, nx, ny, nz, s, t, i, j, k, k1, k2, ii, jj, kk = 0;
+    let x, y, z, xy, nx, ny, nz, s, t, i, j, k1, k2, kk = 0;
     const lengthInv = 1.0 / radius;
     const sectorStep = 2 * Math.PI / sectorCount;
     const stackStep = Math.PI / stackCount;
@@ -258,9 +256,6 @@ export function GenerateCompletePlane(w : number, h : number, wSegments : number
 {
     const vert: number[] = [];
     const ind: number[] = [];
-
-    const segmentWidth = w / wSegments;
-    const segmentHeight = h / hSegments;
 
     for (let y = 0; y <= hSegments; y++) {
         for (let x = 0; x <= wSegments; x++) {
