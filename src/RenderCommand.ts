@@ -4,7 +4,6 @@ import { FunctionEquationTypes, BlendFunctionTypes, ColorAttachments, DataSizes,
 import { Mesh } from "./Mesh.ts";
 import { Geometry } from "./Geometry.ts";
 import { Shader } from "./Shader.ts";
-import Environment from "./Environment.ts";
 import { TextureImageData } from "three/src/textures/types.js";
 import Sky from "./Sky.ts";
 
@@ -408,11 +407,6 @@ export class RenderCommand
         RenderCommand.gl.deleteRenderbuffer(RBO.val);        
     }
 
-    public static ReadFramebufferResults(buffer : {value: Uint8Array}) : void 
-    {        
-    }
-
-
     // Rendering
 
     public static SetViewportDimensions(width : number, height : number) : void 
@@ -510,28 +504,6 @@ export class RenderCommand
         RenderCommand.ReleaseShader();
     }
 
-    public static DrawEnvironment(env : Environment) : void
-    {
-        var VAO = env.GetCube().GetGeometry().vertexArray;
-        var EBO = VAO.GetIndexBuffer();
-        var shader = env.GetCube().GetMaterial().GetShader();
-
-        // Bind the vertex array object and shader program.
-        RenderCommand.BindVertexArray(VAO.GetId());
-        RenderCommand.UseShader(shader.GetId());
-
-        // Make the correct draw call.
-        switch(env.GetCube().GetGeometry().drawFunction.type) 
-        {
-            case GeometryDrawFunctionTypes.DRAW_ARRAYS: RenderCommand.Draw(env.GetCube().GetGeometry().drawFunction.shape, VAO.GetVertexBuffer().GetVerticesCount()); break;
-            case GeometryDrawFunctionTypes.DRAW_ARRAYS_INDEXED: if(EBO) RenderCommand.DrawIndexed(env.GetCube().GetGeometry().drawFunction.shape, EBO.GetUniqueSize() / EBO.GetUniqueIndices().BYTES_PER_ELEMENT , EBO.GetUniqueOffset()); break; 
-        };
-        
-        // Cleanup.
-        RenderCommand.UnbindVertexArray();
-        RenderCommand.UnbindBuffer(BufferType.Index);
-        RenderCommand.ReleaseShader();
-    }
     public static DrawSky(sky : Sky) : void
     {
         var VAO = sky.GetSphere().GetGeometry().vertexArray;
@@ -680,8 +652,8 @@ export class RenderCommand
     // Temporary functions that shouldn't really be here, but I made the choice (perhaps wrongly)
     // of limiting the WebGL context to the RenderCommand - probably should only be done for a hardcore
     // engine.
-    public static MakeSeperateBuffer(b : {buffer : Ref<WebGLBuffer>, data : number[]}) : void
-    {
-    } 
+    // public static MakeSeperateBuffer(b : {buffer : Ref<WebGLBuffer>, data : number[]}) : void
+    // {
+    // } 
 
 };
