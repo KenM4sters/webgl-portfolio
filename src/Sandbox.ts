@@ -17,7 +17,7 @@ var lastFrame : number = performance.now();
 
 let singleton : boolean = false;
 
-export default class Animus extends App
+export default class Sandbox extends App
 {
     constructor(canvas : HTMLCanvasElement) 
     {

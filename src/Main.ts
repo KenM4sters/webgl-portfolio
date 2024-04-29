@@ -1,6 +1,6 @@
-import Animus from "./Animus";
 import Frontend from "./Frontend";
 import Resources from "./Resources";
+import Sandbox from "./Sandbox";
 
 const canvas = document.getElementById("glcanvas") as HTMLCanvasElement | null;
 if(!canvas) throw new Error("Failed to get canvas element!");
@@ -17,7 +17,7 @@ resources.LoadAllResources(RunWebGL);
 function RunWebGL() : void 
 {
     frontend.InitFrontend();
-    const animus = new Animus(canvas as HTMLCanvasElement); 
-    animus.Init();  
-    animus.Run();
+    const sandbox = new Sandbox(canvas as HTMLCanvasElement); 
+    sandbox.Init();  
+    sandbox.Run();
 }
