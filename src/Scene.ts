@@ -143,7 +143,7 @@ export default class Scene extends AppStateListener
         this.water.OnRender(this);
         RenderCommand.ReleaseShader();
         
-        this.ProcessUserInput(ts);
+        // this.ProcessUserInput(ts);
         
     }
 
