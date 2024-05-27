@@ -95,7 +95,7 @@ export default class Frontend extends AppStateListener
         const cGameWrapper = document.querySelector(".cGameWrapper") as HTMLElement;
         const vulkanEngineWrapper = document.querySelector(".vulkanEngineWrapper") as HTMLElement;
         const fullstackReactAppWrapper = document.querySelector(".fullstackReactAppWrapper") as HTMLElement;
-        const gravitySimulatorWrapper = document.querySelector(".gravitySimulatorWrapper") as HTMLElement;
+        const vulkan2dWrapper = document.querySelector(".vulkan2dWrapper") as HTMLElement;
 
         if(!portfolioWrapper) throw new Error("Failed to get projectWrapper from DOM!");
         if(!pbrRendererWrapper) throw new Error("Failed to get projectWrapper from DOM!");
@@ -104,7 +104,7 @@ export default class Frontend extends AppStateListener
         if(!cGameWrapper) throw new Error("Failed to get projectWrapper from DOM!");
         if(!vulkanEngineWrapper) throw new Error("Failed to get projectWrapper from DOM!");
         if(!fullstackReactAppWrapper) throw new Error("Failed to get projectWrapper from DOM!");
-        if(!gravitySimulatorWrapper) throw new Error("Failed to get projectWrapper from DOM!");
+        if(!vulkan2dWrapper) throw new Error("Failed to get projectWrapper from DOM!");
 
 
         // Event listenerrs for each Github link.
@@ -267,18 +267,18 @@ export default class Frontend extends AppStateListener
 
             } 
         })
-        gravitySimulatorWrapper.addEventListener("mouseenter", () => 
+        vulkan2dWrapper.addEventListener("mouseenter", () => 
         {
-            const descrption = gravitySimulatorWrapper.children[1];
+            const descrption = vulkan2dWrapper.children[1];
             if(descrption instanceof HTMLElement) 
             {
                 descrption.classList.add("FadeIn");
                 descrption.children[1].children[0].classList.add("FadeIn");
             }    
         })
-        gravitySimulatorWrapper.addEventListener("mouseleave", () => 
+        vulkan2dWrapper.addEventListener("mouseleave", () => 
         {
-            const descrption = gravitySimulatorWrapper.children[1];
+            const descrption = vulkan2dWrapper.children[1];
             if(descrption instanceof HTMLElement) 
             {
                 descrption.classList.remove("FadeIn");
