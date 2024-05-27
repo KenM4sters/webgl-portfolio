@@ -6,4 +6,5 @@
 ---
 ## Features:
 - Ocean generation using normal maps with random sampling over time to simulate the reflection of sunlight from water waves (No vertices are actually moving - highly peformant).
-- Realistic sky using a Sky Dome with a custom shader that considers the properties of light and its interaction with out atmopshere, such as Rayleigh scattering.
+- Realistic sky using a Sky Dome with a custom shader that considers the properties of light and its interaction with our atmopshere, such as Rayleigh scattering.
+- Custom made LERP functions to transition position coordinates from A to B with easing.
