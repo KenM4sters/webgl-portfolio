@@ -1,8 +1,8 @@
 import GUI from "lil-gui";
 import * as glm from "gl-matrix"
 import { Mesh } from "./Mesh";
-import { PlaneGeometry, SphereGeometry } from "./Geometry";
-import { PhysicalMaterial } from "./Material";
+import { CubeGeometry, Geometry, PlaneGeometry, SphereGeometry } from "./Geometry";
+import { Material, PhysicalMaterial } from "./Material";
 import { Shader } from "./Shader";
 import { Light } from "./Light";
 import { DataSizes, ImageChannels, ImageConfig, ImageWrappingTypes, RenderTarget, SkyParams, TextureType } from "./Types";
@@ -15,6 +15,8 @@ import { Texture2D } from "./Texture";
 // Shaders
 import skyVertSrc from "./Shaders/Sky.vert?raw";
 import skyFragSrc from "./Shaders/Sky.frag?raw";
+import basicVertSrc from "./Shaders/ModelViewProjection.vert?raw";
+import basicFragSrc from "./Shaders/PhysicalMaterial.frag?raw";
 import Water from "./Water";
 import Sky from "./Sky";
 import AppStateListener, { ApplicationStates } from "./AppStateListener";
@@ -84,18 +86,17 @@ export default class Scene extends AppStateListener
         // GUI Parameters
         // Sky
         const SkyFolder = Gui.addFolder('Sky');
-        SkyFolder.add(skyParams.sunPosition.val,     '0',    -200.0, 200.0,     1.0).name("sunLight|PositionX");
-        SkyFolder.add(skyParams.sunPosition.val,     '1',    -200.0, 200.0,     1.0).name("sunLight|PositionY");
-        SkyFolder.add(skyParams.sunPosition.val,     '2',    -200.0, 200.0,     1.0).name("sunLight|PositionZ");
-        SkyFolder.add(skyParams.sunColor.val,        '0',    0.0, 1.0,     0.1).name("sunLight|ColorR");
-        SkyFolder.add(skyParams.sunColor.val,        '1',    0.0, 1.0,     0.1).name("sunLight|ColorG");
-        SkyFolder.add(skyParams.sunColor.val,        '2',    0.0, 1.0,     0.1).name("sunLight|ColorB");   
-        SkyFolder.add(skyParams.sunIntensity,        'val',  0.0, 10000.0, 50.0).name("sunLight|Intensity");
-        
-        SkyFolder.add(skyParams.mieCoefficient,      'val',  0.0, 1.0,     0.01).name("mieCoefficient");
-        SkyFolder.add(skyParams.mieDirectionalG,     'val',  0.0, 1.0,     0.01).name("mieDirectionalG");
-        SkyFolder.add(skyParams.rayleigh,            'val',  0.0, 4.0,     0.01).name("rayleigh");
-        SkyFolder.add(skyParams.turbidity,           'val',  0.0, 20.0,    0.01).name("turbidity");
+        SkyFolder.add(skyParams.sunPosition.val, '0', -200.0, 200.0, 1.0).name("sunLight|PositionX");
+        SkyFolder.add(skyParams.sunPosition.val, '1', -200.0, 200.0, 1.0).name("sunLight|PositionY");
+        SkyFolder.add(skyParams.sunPosition.val, '2', -200.0, 200.0, 1.0).name("sunLight|PositionZ");
+        SkyFolder.add(skyParams.sunColor.val, '0', 0.0, 1.0, 0.1).name("sunLight|ColorR");
+        SkyFolder.add(skyParams.sunColor.val, '1', 0.0, 1.0, 0.1).name("sunLight|ColorG");
+        SkyFolder.add(skyParams.sunColor.val, '2', 0.0, 1.0, 0.1).name("sunLight|ColorB");   
+        SkyFolder.add(skyParams.sunIntensity, 'val', 0.0, 10000.0, 50.0).name("sunLight|Intensity");
+        SkyFolder.add(skyParams.mieCoefficient, 'val', 0.0, 1.0, 0.01).name("mieCoefficient");
+        SkyFolder.add(skyParams.mieDirectionalG, 'val', 0.0, 1.0, 0.01).name("mieDirectionalG");
+        SkyFolder.add(skyParams.rayleigh, 'val', 0.0, 4.0, 0.01).name("rayleigh");
+        SkyFolder.add(skyParams.turbidity, 'val', 0.0, 20.0, 0.01).name("turbidity");
 
         // Water 
         const WaterFolder = Gui.addFolder('Water');
@@ -127,9 +128,9 @@ export default class Scene extends AppStateListener
 
         const water = this.water.GetMesh();
         const waterMat = this.water.GetMesh().GetMaterial();
-        water.transforms.ModelMatrix =  glm.mat4.create();
-        water.transforms.ModelMatrix =  glm.mat4.scale(glm.mat4.create(), water.transforms.ModelMatrix, water.transforms.Scale);
-        water.transforms.ModelMatrix =  glm.mat4.translate(glm.mat4.create(), water.transforms.ModelMatrix, water.transforms.Translation);
+        water.transforms.ModelMatrix = glm.mat4.create();
+        water.transforms.ModelMatrix = glm.mat4.scale(glm.mat4.create(), water.transforms.ModelMatrix, water.transforms.Scale);
+        water.transforms.ModelMatrix = glm.mat4.translate(glm.mat4.create(), water.transforms.ModelMatrix, water.transforms.Translation);
         
         RenderCommand.UseShader(waterMat.GetShader().GetId());
         RenderCommand.SetFloat(waterMat.GetShader().GetId(), "time", currentTime / 10000);
@@ -143,8 +144,7 @@ export default class Scene extends AppStateListener
         this.water.OnRender(this);
         RenderCommand.ReleaseShader();
         
-        // this.ProcessUserInput(ts);
-        
+        this.ProcessUserInput(ts);
     }
 
     public SceneRender() 
@@ -217,8 +217,8 @@ export default class Scene extends AppStateListener
             const sky = this.sky.GetSphere();
             const mat = sky.GetMaterial();
             sky.transforms.ModelMatrix = glm.mat4.create();
-            sky.transforms.ModelMatrix =  glm.mat4.scale(glm.mat4.create(), sky.transforms.ModelMatrix, sky.transforms.Scale);
-            sky.transforms.ModelMatrix =  glm.mat4.translate(glm.mat4.create(), sky.transforms.ModelMatrix, sky.transforms.Translation);
+            sky.transforms.ModelMatrix = glm.mat4.scale(glm.mat4.create(), sky.transforms.ModelMatrix, sky.transforms.Scale);
+            sky.transforms.ModelMatrix = glm.mat4.translate(glm.mat4.create(), sky.transforms.ModelMatrix, sky.transforms.Translation);
             RenderCommand.UseShader(mat.GetShader().GetId());
             RenderCommand.SetMat4f(mat.GetShader().GetId(), "model", sky.transforms.ModelMatrix);
             RenderCommand.SetMat4f(mat.GetShader().GetId(), "view", this.camera.GetViewMatrix());
@@ -262,6 +262,8 @@ export default class Scene extends AppStateListener
 
         // Reset the target.
         this.output.target = new Framebuffer(imageConfig, true);
+
+        this.camera.UpdateProjectionMatrix(w, h);
     }
 
     public ProcessUserInput(ts : number): void 

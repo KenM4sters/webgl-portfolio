@@ -81,6 +81,7 @@ export default class Water
 
         this.camera.position = originalPos;
         scene.SceneRender();
+
         // Draw Mesh
         // ----------------------------------------------------------------
         var VAO = this.mesh.GetGeometry().vertexArray;
@@ -96,12 +97,13 @@ export default class Water
         RenderCommand.SetInt(shader.GetId(), "reflectionTex", 0);
         RenderCommand.SetInt(shader.GetId(), "refractionTex", 1);
         RenderCommand.SetInt(shader.GetId(), "normalMap", 2);
-        // Make the correct draw call.
+
         switch(this.mesh.GetGeometry().drawFunction.type) 
         {
             case GeometryDrawFunctionTypes.DRAW_ARRAYS: RenderCommand.Draw(this.mesh.GetGeometry().drawFunction.shape, VAO.GetVertexBuffer().GetVerticesCount()); break;
             case GeometryDrawFunctionTypes.DRAW_ARRAYS_INDEXED: if(EBO) RenderCommand.DrawIndexed(this.mesh.GetGeometry().drawFunction.shape, EBO.GetUniqueSize() / EBO.GetUniqueIndices().BYTES_PER_ELEMENT , EBO.GetUniqueOffset()); break; 
         };
+        
         // Cleanup.
         RenderCommand.UnbindVertexArray();
         RenderCommand.UnbindBuffer(BufferType.Index);

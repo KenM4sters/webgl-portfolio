@@ -32,7 +32,10 @@ export default class Frontend extends AppStateListener
     {
         this.canvas.style.backgroundColor = "rgba(10, 10, 10, 255)";
         const landing = document.querySelector(".landing");
-        if(!landing) throw new Error("Failed to get landing from DOM | body");
+        if(!landing)
+        {
+            throw new Error("Failed to get landing from DOM | body");
+        } 
         landing.innerHTML = `<div class="preloader"></div>`;
         
     }
@@ -40,14 +43,18 @@ export default class Frontend extends AppStateListener
     public InitFrontend() : void 
     {
         const landing = document.querySelector(".landing");
-        if(!landing) throw new Error("Failed to get landing from DOM | body");
+        if(!landing)
+        {
+            throw new Error("Failed to get landing from DOM | body");
+        } 
         landing.innerHTML = frontendSrc;
         this.RenderFrontend();
     }
 
     private RenderFrontend() : void 
     {
-        this.elements = {
+        this.elements = 
+        {
             Intro: 
             {
                 Header: document.querySelector(".intro_header") as HTMLElement,
@@ -291,14 +298,14 @@ export default class Frontend extends AppStateListener
     {
         if (this.GetCurrentAppState() == ApplicationStates.VIEWING_PROJECTS) 
         {
-            this.elements.NavIcon.Bar1.style.transform = `rotate(0deg) translate(0px, 0px)`;
-            this.elements.NavIcon.Bar2.style.display = ``;
-            this.elements.NavIcon.Bar3.style.transform = `rotate(0deg) translate(0px, 0px)`;
+            // this.elements.NavIcon.Bar1.style.transform = `rotate(0deg) translate(0px, 0px)`;
+            // this.elements.NavIcon.Bar2.style.display = ``;
+            // this.elements.NavIcon.Bar3.style.transform = `rotate(0deg) translate(0px, 0px)`;
             this.ModifyState(ApplicationStates.HIDING_PROJECTS)
         } else {
-            this.elements.NavIcon.Bar1.style.transform = `rotate(45deg) translate(3px, 3.5px)`;
-            this.elements.NavIcon.Bar2.style.display = `none`;
-            this.elements.NavIcon.Bar3.style.transform = `rotate(-45deg) translate(3px, -3.5px)`;
+            // this.elements.NavIcon.Bar1.style.transform = `rotate(45deg) translate(3px, 3.5px)`;
+            // this.elements.NavIcon.Bar2.style.display = `none`;
+            // this.elements.NavIcon.Bar3.style.transform = `rotate(-45deg) translate(3px, -3.5px)`;
             this.ModifyState(ApplicationStates.VIEWING_PROJECTS);
         }
     }
@@ -310,6 +317,7 @@ export default class Frontend extends AppStateListener
             // Projects Window
             this.projectsWindow.classList.add("FadeIn");
             this.projectsWindow.style.visibility = "visible";
+            
             // Intro
             let targetX = -window.innerWidth - 1500;
             let targetY = 0;
@@ -334,7 +342,7 @@ export default class Frontend extends AppStateListener
             targetX = -(window.innerWidth / 2) + 45;
             targetY = 0;
             Animator.LerpDOMElement(this.elements.Intro.SubHeader, {x: targetX, y: targetY}, 2000);
-            targetX = (window.innerWidth / 2) - 400;
+            targetX = (window.innerWidth / 2) - (window.innerWidth / 4);
             targetY = 0;
             Animator.LerpDOMElement(this.elements.Links, {x: targetX, y: targetY}, 2000);
         }

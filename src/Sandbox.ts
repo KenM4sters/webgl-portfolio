@@ -22,6 +22,7 @@ export default class Sandbox extends App
     constructor(canvas : HTMLCanvasElement) 
     {
         super(canvas);
+
         if(singleton)
             return this;
         singleton = true;
@@ -29,15 +30,20 @@ export default class Sandbox extends App
 
     public Init() : void 
     {
-        function isMobile() {
+        function isMobile() 
+        {
             return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         }
         
         this.scene = new Scene();
         this.gui = new GUI();
         this.renderer = new Renderer();
-        if(!isMobile())
+
+        if(!isMobile()) 
+        {
             this.cursor = new Cursor();
+        }
+
         this.input = new Input();
         
         this.Resize();
@@ -74,7 +80,6 @@ export default class Sandbox extends App
 
         this.canvas.width = Math.round(this.windowWidth);
         this.canvas.height = Math.round(this.windowHeight);
-
         
         this.scene.Resize(this.windowWidth, this.windowHeight);
         this.renderer.Resize(this.windowWidth, this.windowHeight);   
