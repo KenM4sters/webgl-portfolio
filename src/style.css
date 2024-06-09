@@ -155,7 +155,7 @@ body
   justify-content: space-evenly;
   place-items: center;
   column-gap: 2vw;
-  background-color: rgb(8, 16, 35);
+  background-color: rgba(5, 10, 23, 0.849);
   border-radius: 15px;
   padding-top: calc(2.0vh + 0.25rem);
   padding-bottom: calc(2.0vh + 0.25rem);
@@ -215,7 +215,6 @@ body
   row-gap: 0;
   width: 100%;
   height: 75%;
-
 }
 
 .project 
@@ -245,6 +244,21 @@ body
   opacity: 0.8;
   transition: all;
   transition-duration: 0.5s;
+}
+
+.currentProject 
+{
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  place-items: center;
+  width: calc(2vw + 5.0rem);
+  height: calc(0.7vw + 1.0rem);
+  top: -15%;
+  background-color: rgba(221, 221, 221, 0.122);
+  color: #ebebeb;
+  border-radius: 10px;
 }
 
 .projectImage:hover 
@@ -311,6 +325,7 @@ body
 .projectFeatures 
 {
   display: flex;
+  width: 85%;
   flex-direction: column;
   justify-content: center;
   row-gap: 1vh;
